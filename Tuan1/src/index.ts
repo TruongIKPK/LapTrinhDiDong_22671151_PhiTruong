@@ -1,16 +1,23 @@
-import { Book } from "./book";
-import { Library } from "./library";
-import { User } from "./user";
+import { Box } from "./box";
 
-const library = new Library();
+const numberBox = new Box<number>(123);
+console.log("Number:", numberBox.getValue());
+const stringBox = new Box<string>("Hop den");
+console.log("String:", stringBox.getValue());
+const booleanBox = new Box<boolean>(true);
+console.log("Boolean:", booleanBox.getValue()); 
 
-library.addBook(new Book("Tat den", "Ngo Tat To",2021));
-library.addBook(new Book("Nhat Ha", "Truong Le", 2012));
+//Bai 15
+// import { Book } from "./book";
+// import { Library } from "./library";
+// import { User } from "./user";
+// const library = new Library();
+// library.addBook(new Book("Tat den", "Ngo Tat To",2021));
+// library.addBook(new Book("Nhat Ha", "Truong Le", 2012));
+// library.addUser(new User("Phi Truong"));
+// library.showBooks();
 
-library.addUser(new User("Phi Truong"));
-
-library.showBooks();
-
+//Bai 14
 // import { Developer, Manager } from "./employee";
 // const manager = new Manager("Phuc", 1000);
 // manager.work();
