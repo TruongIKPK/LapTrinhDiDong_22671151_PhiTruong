@@ -1,8 +1,18 @@
-import { Account } from "./account";
+import { Cat, Dog } from "./animals";
 
-const taikhoan = new Account(1, "Truong", "1234");
-console.log("Ten " + taikhoan.username)
-console.log("Mật khẩu " + taikhoan.getPassword())
+const cho = new Dog("nau");
+const meo = new Cat("muop");
+
+cho.sound();
+meo.sound();
+
+
+//Bai 10
+// import { Account } from "./account";
+
+// const taikhoan = new Account(1, "Truong", "1234");
+// console.log("Ten " + taikhoan.username)
+// console.log("Mật khẩu " + taikhoan.getPassword())
 
 //Bai 8
 // import { Product } from "./product";
