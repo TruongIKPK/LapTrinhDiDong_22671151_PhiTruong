@@ -1,9 +1,16 @@
-import { MathUtil } from "./mathUtil";
+import { Cat, Dog } from "./animals";
 
-console.log("Math Add: " + MathUtil.add(13,5));
-console.log("Math Subtract: " + MathUtil.subtract(17,5));
-console.log("Math Multiply: " + MathUtil.multiply(17,5));
-console.log("Math Divide: " + MathUtil.divide(17,5));
+const dog = new Dog("");
+dog.sound();
+const cat = new Cat("");
+cat.sound();
+
+//Bai 18
+// import { MathUtil } from "./mathUtil";
+// console.log("Math Add: " + MathUtil.add(13,5));
+// console.log("Math Subtract: " + MathUtil.subtract(17,5));
+// console.log("Math Multiply: " + MathUtil.multiply(17,5));
+// console.log("Math Divide: " + MathUtil.divide(17,5));
 
 //Bai 17
 // import { Logger } from "./logger";
