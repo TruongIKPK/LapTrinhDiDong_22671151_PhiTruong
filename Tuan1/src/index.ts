@@ -1,9 +1,16 @@
-import { Logger } from "./logger";
+import { MathUtil } from "./mathUtil";
 
-const logger1 = Logger.getInstance();
-const logger2 = Logger.getInstance();
-logger1.log("log");
-logger2.error("loi");
+console.log("Math Add: " + MathUtil.add(13,5));
+console.log("Math Subtract: " + MathUtil.subtract(17,5));
+console.log("Math Multiply: " + MathUtil.multiply(17,5));
+console.log("Math Divide: " + MathUtil.divide(17,5));
+
+//Bai 17
+// import { Logger } from "./logger";
+// const logger1 = Logger.getInstance();
+// const logger2 = Logger.getInstance();
+// logger1.log("log");
+// logger2.error("loi");
 
 //Bai 16
 // import { Box } from "./box";
