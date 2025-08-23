@@ -1,9 +1,17 @@
-import { Cat, Dog } from "./animals";
+import { Car } from "./vehicle";
+import { Bike } from "./vehicle";
 
-const dog = new Dog("");
-dog.sound();
-const cat = new Cat("");
-cat.sound();
+const car = new Car();
+car.drive();
+const bike = new Bike();
+bike.drive();
+
+//Bai 19
+// import { Cat, Dog } from "./animals";
+// const dog = new Dog("");
+// dog.sound();
+// const cat = new Cat("");
+// cat.sound();
 
 //Bai 18
 // import { MathUtil } from "./mathUtil";
