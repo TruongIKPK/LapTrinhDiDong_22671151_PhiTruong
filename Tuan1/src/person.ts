@@ -7,7 +7,7 @@ export class Person {
         this.age = age;
     }
 
-    display() {
+    display(): void {
     console.log(`Name: ${this.name}, Age: ${this.age}`);
     }
 }
