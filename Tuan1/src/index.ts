@@ -1,23 +1,27 @@
-import { Bird, Fish } from "./animals";
+import { Circle, Square } from "./shape";
 
-const chim = new Bird("chao mao");
-chim.fly();
+const square = new Square(5);
+const circle = new Circle(3);
+console.log(circle.area());
+console.log(square.area());
 
-const ca = new Fish("ca ngu");
-ca.swim();
+//Bai 12
+// import { Bird, Fish } from "./animals";
+// const chim = new Bird("chao mao");
+// chim.fly();
+// const ca = new Fish("ca ngu");
+// ca.swim();
+
 //Bai 11
 // import { Cat, Dog } from "./animals";
-
 // const cho = new Dog("nau");
 // const meo = new Cat("muop");
-
 // cho.sound();
 // meo.sound();
 
 
 //Bai 10
 // import { Account } from "./account";
-
 // const taikhoan = new Account(1, "Truong", "1234");
 // console.log("Ten " + taikhoan.username)
 // console.log("Mật khẩu " + taikhoan.getPassword())
