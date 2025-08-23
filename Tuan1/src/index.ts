@@ -1,11 +1,18 @@
-import { Box } from "./box";
+import { Logger } from "./logger";
 
-const numberBox = new Box<number>(123);
-console.log("Number:", numberBox.getValue());
-const stringBox = new Box<string>("Hop den");
-console.log("String:", stringBox.getValue());
-const booleanBox = new Box<boolean>(true);
-console.log("Boolean:", booleanBox.getValue()); 
+const logger1 = Logger.getInstance();
+const logger2 = Logger.getInstance();
+logger1.log("log");
+logger2.error("loi");
+
+//Bai 16
+// import { Box } from "./box";
+// const numberBox = new Box<number>(123);
+// console.log("Number:", numberBox.getValue());
+// const stringBox = new Box<string>("Hop den");
+// console.log("String:", stringBox.getValue());
+// const booleanBox = new Box<boolean>(true);
+// console.log("Boolean:", booleanBox.getValue()); 
 
 //Bai 15
 // import { Book } from "./book";
