@@ -1,10 +1,18 @@
-import { Cat, Dog } from "./animals";
+import { Bird, Fish } from "./animals";
 
-const cho = new Dog("nau");
-const meo = new Cat("muop");
+const chim = new Bird("chao mao");
+chim.fly();
 
-cho.sound();
-meo.sound();
+const ca = new Fish("ca ngu");
+ca.swim();
+//Bai 11
+// import { Cat, Dog } from "./animals";
+
+// const cho = new Dog("nau");
+// const meo = new Cat("muop");
+
+// cho.sound();
+// meo.sound();
 
 
 //Bai 10
