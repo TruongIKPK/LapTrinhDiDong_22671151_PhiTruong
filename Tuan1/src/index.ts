@@ -1,16 +1,20 @@
+import { Account } from "./account";
+
+const taikhoan = new Account(1, "Truong", "1234");
+console.log("Ten " + taikhoan.username)
+console.log("Mật khẩu " + taikhoan.getPassword())
+
 //Bai 8
-import { Product } from "./product";
-
-const products: Product[] = [
-    new Product("Book", 50),
-    new Product("Phone", 200),
-    new Product("Pen", 20),
-    new Product("Laptop", 1500),
-    new Product("Bag", 80)
-];
-
-const loc = products.filter(product => product.price > 100);
-console.log(loc);
+// import { Product } from "./product";
+// const products: Product[] = [
+//     new Product("Book", 50),
+//     new Product("Phone", 200),
+//     new Product("Pen", 20),
+//     new Product("Laptop", 1500),
+//     new Product("Bag", 80)
+// ];
+// const loc = products.filter(product => product.price > 100);
+// console.log(loc);
 
 //Bai 7
 // import { User } from "./user";
