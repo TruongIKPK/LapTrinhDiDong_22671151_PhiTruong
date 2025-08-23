@@ -1,3 +1,16 @@
+import { Book } from "./book";
+import { Library } from "./library";
+import { User } from "./user";
+
+const library = new Library();
+
+library.addBook(new Book("Tat den", "Ngo Tat To",2021));
+library.addBook(new Book("Nhat Ha", "Truong Le", 2012));
+
+library.addUser(new User("Phi Truong"));
+
+library.showBooks();
+
 // import { Developer, Manager } from "./employee";
 // const manager = new Manager("Phuc", 1000);
 // manager.work();
