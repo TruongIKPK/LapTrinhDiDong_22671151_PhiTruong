@@ -1,9 +1,17 @@
-import { Circle, Square } from "./shape";
+// import { Developer, Manager } from "./employee";
+// const manager = new Manager("Phuc", 1000);
+// manager.work();
+// manager.manageTeam();
+// const developer = new Developer("Khanh", 2000);
+// developer.work();
+// developer.writeCode();
 
-const square = new Square(5);
-const circle = new Circle(3);
-console.log(circle.area());
-console.log(square.area());
+//Bai 13
+// import { Circle, Square } from "./shape";
+// const square = new Square(5);
+// const circle = new Circle(3);
+// console.log(circle.area());
+// console.log(square.area());
 
 //Bai 12
 // import { Bird, Fish } from "./animals";
