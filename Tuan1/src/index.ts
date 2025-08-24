@@ -1,12 +1,19 @@
-import { Stack } from "./stack";
+import { CardPayment, CashPayment } from "./payment";
 
-const stack = new Stack();
-stack.push(1);
-stack.push(2);
-stack.push(3);
-console.log(stack.peek());
-console.log(stack.pop());
-console.log(stack.isEmpty());
+
+const cashPayment = new CashPayment();
+cashPayment.pay(100);
+const cardPayment = new CardPayment();
+cardPayment.pay(200);
+
+// import { Stack } from "./stack";
+// const stack = new Stack();
+// stack.push(1);
+// stack.push(2);
+// stack.push(3);
+// console.log(stack.peek());
+// console.log(stack.pop());
+// console.log(stack.isEmpty());
 
 // import { Repository } from "./repository";
 // const repositoryString = new Repository<string>();
