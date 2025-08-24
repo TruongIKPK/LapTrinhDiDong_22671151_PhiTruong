@@ -1,10 +1,16 @@
-import { Car } from "./vehicle";
-import { Bike } from "./vehicle";
+import { Repository } from "./repository";
 
-const car = new Car();
-car.drive();
-const bike = new Bike();
-bike.drive();
+const repositoryString = new Repository<string>();
+repositoryString.add("Item 1");
+repositoryString.add("Item 2");
+
+//Bai 20
+// import { Car } from "./vehicle";
+// import { Bike } from "./vehicle";
+// const car = new Car();
+// car.drive();
+// const bike = new Bike();
+// bike.drive();
 
 //Bai 19
 // import { Cat, Dog } from "./animals";
