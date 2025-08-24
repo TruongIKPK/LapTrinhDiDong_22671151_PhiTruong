@@ -1,9 +1,16 @@
-import { Cat, Dog } from "./animals";
+import { Car } from "./movable";
+import { Robot } from "./movable";
 
-const dog = new Dog("");
-dog.makeSound();
-const cat = new Cat("");
-cat.makeSound();
+const car = new Car();
+car.move();
+const robot = new Robot();
+robot.move();
+
+// import { Cat, Dog } from "./animals";
+// const dog = new Dog("");
+// dog.makeSound();
+// const cat = new Cat("");
+// cat.makeSound();
 
 
 // import { Teacher } from "./teacher";
