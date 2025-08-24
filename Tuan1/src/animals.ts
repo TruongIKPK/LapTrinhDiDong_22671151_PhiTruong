@@ -10,6 +10,9 @@ export class Animal {
     sound(): void {
         console.log("Some animal sound");
     }
+    protected makeSound() {
+        console.log("Animal makes a sound");
+    }
 }
 
 export class Dog extends Animal {
@@ -22,6 +25,9 @@ export class Dog extends Animal {
     sound(): void {
         this.bark();
     }
+    makeSound() {
+        console.log("Dog gau gau");
+    }
 }
 
 export class Cat extends Animal {
@@ -33,6 +39,9 @@ export class Cat extends Animal {
     }
     sound(): void {
         this.meow();
+    }
+     makeSound() {
+        console.log("Cat meo meo");
     }
 }
 

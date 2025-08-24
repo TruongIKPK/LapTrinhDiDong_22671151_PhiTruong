@@ -1,7 +1,14 @@
-import { Teacher } from "./teacher";
+import { Cat, Dog } from "./animals";
 
-const teacher = new Teacher("Tien", 21, "Di Dong");
-teacher.introduce();
+const dog = new Dog("");
+dog.makeSound();
+const cat = new Cat("");
+cat.makeSound();
+
+
+// import { Teacher } from "./teacher";
+// const teacher = new Teacher("Tien", 21, "Di Dong");
+// teacher.introduce();
 
 
 // import { Order } from "./order";
