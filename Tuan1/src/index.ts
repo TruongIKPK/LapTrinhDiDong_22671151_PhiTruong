@@ -1,10 +1,24 @@
-import { Repository } from "./repository";
+import { Stack } from "./stack";
 
-const repositoryString = new Repository<string>();
-repositoryString.add("Item 1");
-repositoryString.add("Item 2");
+const stack = new Stack();
+stack.push(1);
+stack.push(2);
+stack.push(3);
+console.log(stack.peek());
+console.log(stack.pop());
+console.log(stack.isEmpty());
 
-//Bai 20
+// import { Repository } from "./repository";
+// const repositoryString = new Repository<string>();
+// repositoryString.add("Item 1");
+// repositoryString.add("Item 2");
+// const repositoryNumber = new Repository<number>();
+// repositoryNumber.add(100);
+// repositoryNumber.add(200);
+// console.log("String Repository: ", repositoryString.getAll());
+// console.log("Number Repository: ", repositoryNumber.getAll());
+
+//Bai 20s
 // import { Car } from "./vehicle";
 // import { Bike } from "./vehicle";
 // const car = new Car();
