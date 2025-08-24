@@ -1,10 +1,15 @@
-import { Order } from "./order";
-import { Product } from "./product";
+import { Teacher } from "./teacher";
 
-const order = new(Order);
-order.addProduct(new Product("Sach Vang", 20));
-order.addProduct(new Product("Tieng anh", 20));
-console.log(order.calculateTotalPrice());
+const teacher = new Teacher("Tien", 21, "Di Dong");
+teacher.introduce();
+
+
+// import { Order } from "./order";
+// import { Product } from "./product";
+// const order = new(Order);
+// order.addProduct(new Product("Sach Vang", 20));
+// order.addProduct(new Product("Tieng anh", 20));
+// console.log(order.calculateTotalPrice());
 
 // import { Shape } from "./shape1";
 // console.log(Shape.describe());
