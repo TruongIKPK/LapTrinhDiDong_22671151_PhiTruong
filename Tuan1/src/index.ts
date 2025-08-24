@@ -1,9 +1,11 @@
-import { AirConditioner, Fan } from "./appliance";
+import { Shape } from "./shape1";
+console.log(Shape.describe());
 
-const fan = new Fan();
-fan.turnOn();
-const airConditioner = new AirConditioner();
-airConditioner.turnOn();
+// import { AirConditioner, Fan } from "./appliance";
+// const fan = new Fan();
+// fan.turnOn();
+// const airConditioner = new AirConditioner();
+// airConditioner.turnOn();
 
 //Bai 23
 // import { CardPayment, CashPayment } from "./payment";
