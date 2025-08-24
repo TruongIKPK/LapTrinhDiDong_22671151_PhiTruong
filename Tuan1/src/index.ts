@@ -1,10 +1,21 @@
-import { Car } from "./movable";
-import { Robot } from "./movable";
+import { School } from "./school";
+import { Student } from "./student";
+import { Teacher } from "./teacher";
 
-const car = new Car();
-car.move();
-const robot = new Robot();
-robot.move();
+const school = new School();
+school.addStudent(new Student("Hien", 21, 9));
+school.addStudent(new Student("Phi truong", 18, 10));
+school.addTeacher(new Teacher("Tien", 40, "DI dong"));
+school.addTeacher(new Teacher("Hanh", 40, "Cong nghe pham mem"));
+school.displayInfo();
+
+
+// import { Car } from "./movable";
+// import { Robot } from "./movable";
+// const car = new Car();
+// car.move();
+// const robot = new Robot();
+// robot.move();
 
 // import { Cat, Dog } from "./animals";
 // const dog = new Dog("");
