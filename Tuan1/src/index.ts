@@ -1,5 +1,13 @@
-import { Shape } from "./shape1";
-console.log(Shape.describe());
+import { Order } from "./order";
+import { Product } from "./product";
+
+const order = new(Order);
+order.addProduct(new Product("Sach Vang", 20));
+order.addProduct(new Product("Tieng anh", 20));
+console.log(order.calculateTotalPrice());
+
+// import { Shape } from "./shape1";
+// console.log(Shape.describe());
 
 // import { AirConditioner, Fan } from "./appliance";
 // const fan = new Fan();
