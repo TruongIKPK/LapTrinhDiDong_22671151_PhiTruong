@@ -1,11 +1,18 @@
-import { CardPayment, CashPayment } from "./payment";
+import { AirConditioner, Fan } from "./appliance";
 
+const fan = new Fan();
+fan.turnOn();
+const airConditioner = new AirConditioner();
+airConditioner.turnOn();
 
-const cashPayment = new CashPayment();
-cashPayment.pay(100);
-const cardPayment = new CardPayment();
-cardPayment.pay(200);
+//Bai 23
+// import { CardPayment, CashPayment } from "./payment";
+// const cashPayment = new CashPayment();
+// cashPayment.pay(100);
+// const cardPayment = new CardPayment();
+// cardPayment.pay(200);
 
+//Bai 22
 // import { Stack } from "./stack";
 // const stack = new Stack();
 // stack.push(1);
@@ -15,6 +22,7 @@ cardPayment.pay(200);
 // console.log(stack.pop());
 // console.log(stack.isEmpty());
 
+//Bai 21
 // import { Repository } from "./repository";
 // const repositoryString = new Repository<string>();
 // repositoryString.add("Item 1");
@@ -25,7 +33,7 @@ cardPayment.pay(200);
 // console.log("String Repository: ", repositoryString.getAll());
 // console.log("Number Repository: ", repositoryNumber.getAll());
 
-//Bai 20s
+//Bai 20
 // import { Car } from "./vehicle";
 // import { Bike } from "./vehicle";
 // const car = new Car();
