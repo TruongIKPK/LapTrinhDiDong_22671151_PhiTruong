@@ -1,4 +1,4 @@
-import { sayHello1 } from "./AsyncAwait";
+import { runFailTask, runTask, sayHello1 } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
 
 // async function run() {
@@ -114,3 +114,8 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 //   const message = await sayHello1();
 //   console.log(message); 
 // })();
+
+//Bai 12
+// runTask();
+//Bai 13
+runFailTask();
