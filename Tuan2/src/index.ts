@@ -1,5 +1,6 @@
 import { fetchUser, fetchUsers, fetchUserWithTimeout, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
+import { fetchTodo } from "./FetchAPI&SimulatedIO";
 
 // async function run() {
 //     //Bai 1
@@ -191,12 +192,16 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 // testFetchUsers()
 
 //Bai 20
-(async ()=>{
-    try{
-        const user = await fetchUserWithTimeout(1, 2000);
-        console.log("User: ", user);
-    }catch(err){
-        console.error("Error: ", err);
-    }
-})();
+// (async ()=>{
+//     try{
+//         const user = await fetchUserWithTimeout(1, 2000);
+//         console.log("User: ", user);
+//     }catch(err){
+//         console.error("Error: ", err);
+//     }
+// })();
 
+//Bai 21
+fetchTodo()
+.then(data => console.log("Result", data))
+.catch(err => console.error("Error:", err));
