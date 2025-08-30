@@ -1,4 +1,4 @@
-import { fetchUser, fetchUsers, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
+import { fetchUser, fetchUsers, fetchUserWithTimeout, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
 
 // async function run() {
@@ -183,9 +183,20 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 // testFetchUser();
 
 //Bai 19
-async function testFetchUsers() {
-    const users = await fetchUsers([1, 2, 3])
-    console.log("Users:", users);
-}
+// async function testFetchUsers() {
+//     const users = await fetchUsers([1, 2, 3])
+//     console.log("Users:", users);
+// }
 
-testFetchUsers()
+// testFetchUsers()
+
+//Bai 20
+(async ()=>{
+    try{
+        const user = await fetchUserWithTimeout(1, 2000);
+        console.log("User: ", user);
+    }catch(err){
+        console.error("Error: ", err);
+    }
+})();
+

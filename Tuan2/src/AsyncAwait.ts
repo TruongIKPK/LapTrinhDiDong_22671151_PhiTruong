@@ -60,3 +60,15 @@ export async function fetchUsers(ids: number[]): Promise<{ id: number; name: str
   const promises = ids.map((id) => fetchUser(id));
   return Promise.all(promises);
 }
+
+export async function fetchUserWithTimeout(id: number, timeoutMs: number): Promise<{ id: number; name: string }> {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`Timeout: fetchUser(${id}) took longer than ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([fetchUser(id), timeoutPromise]);
+}
+
+
