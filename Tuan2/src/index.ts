@@ -1,4 +1,4 @@
-import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask } from "./Basics_with_Promise";
+import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers } from "./Basics_with_Promise";
 
 // async function run() {
 //     //Bai 1
@@ -63,23 +63,34 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask } from 
 // });
 
 //Bai 8
-const start = Promise.resolve(2)
+// const start = Promise.resolve(2)
 
-start
-.then((num)=>{
-    const binhPhuong = num * num;
-    console.log("Binh phuong:", binhPhuong);
-    return binhPhuong;
-})
-.then((num)=>{
-    const nhanDoi = num * 2;
-    console.log("Nhan doi: ", nhanDoi);
-    return nhanDoi;
-})
-.then((num)=>{
-    const cong = num + 1;
-    console.log("Ket qua: ", cong);
-    return cong;
+// start
+// .then((num)=>{
+//     const binhPhuong = num * num;
+//     console.log("Binh phuong:", binhPhuong);
+//     return binhPhuong;
+// })
+// .then((num)=>{
+//     const nhanDoi = num * 2;
+//     console.log("Nhan doi: ", nhanDoi);
+//     return nhanDoi;
+// })
+// .then((num)=>{
+//     const cong = num + 1;
+//     console.log("Ket qua: ", cong);
+//     return cong;
+// })
+// .catch((err)=>{
+//     console.error("Error: ", err);
+// });
+
+//Bai 9
+const number = [1, 2, 3, 4, 5, 6];
+
+filterEvenNumbers(number)
+.then((evens)=>{
+    console.log("Even numbers: ", evens);
 })
 .catch((err)=>{
     console.error("Error: ", err);
