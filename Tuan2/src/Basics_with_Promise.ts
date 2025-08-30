@@ -5,3 +5,10 @@ export const sayHello = new Promise((resolve) => {
     },2000);
 },);
 
+export function getNumber(){
+    return new Promise((resolve) => {
+        setTimeout(()=>{
+            resolve(10);
+        },1000);
+    });
+}
