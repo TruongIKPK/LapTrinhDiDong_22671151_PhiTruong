@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es6", /* Chỉ định phiên bản JavaScript mà TypeScript sẽ biên dịch ra */
-    "module": "commonjs", /* Sử dụng module CommonJS */
+    "target": "ES2020", /* Chỉ định phiên bản JavaScript mà TypeScript sẽ biên dịch ra */
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM"], /* Sử dụng module CommonJS */
     "strict": true, /* Bật kiểm tra strict */
     "esModuleInterop": true, /* Hỗ trợ import/export ES Modules */
     "outDir": "./dist", /* Thư mục chứa các tệp JavaScript đã biên dịch */

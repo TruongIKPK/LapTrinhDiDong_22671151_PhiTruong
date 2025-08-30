@@ -13,6 +13,10 @@ export function getNumber(): Promise<number>{
     });
 }
 
+export const successPromise: Promise<string> = new Promise<string>((resolve) => {
+  setTimeout(() => resolve("Success!"), 1000);
+});
+
 export function failPromise(): Promise<never>{
     return new Promise((_, reject)=>{
         setTimeout(()=>{
@@ -50,3 +54,4 @@ export function filterEvenNumbers(arr: number[]): Promise<number[]>{
         }, 1000);
     });
 }
+

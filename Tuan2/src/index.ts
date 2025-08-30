@@ -1,4 +1,4 @@
-import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers } from "./Basics_with_Promise";
+import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
 
 // async function run() {
 //     //Bai 1
@@ -86,13 +86,25 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 // });
 
 //Bai 9
-const number = [1, 2, 3, 4, 5, 6];
+// const number = [1, 2, 3, 4, 5, 6];
 
-filterEvenNumbers(number)
-.then((evens)=>{
-    console.log("Even numbers: ", evens);
+// filterEvenNumbers(number)
+// .then((evens)=>{
+//     console.log("Even numbers: ", evens);
+// })
+// .catch((err)=>{
+//     console.error("Error: ", err);
+// });
+
+//Bai 10
+successPromise
+.then((msg) => {
+console.log("Result:", msg);
 })
-.catch((err)=>{
-    console.error("Error: ", err);
+.catch((err) => {
+console.error("Error:", err);
+})
+.finally(() => {
+console.log("Done"); 
 });
 
