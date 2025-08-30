@@ -1,4 +1,4 @@
-import { runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
+import { fetchUser, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
 
 // async function run() {
@@ -157,18 +157,27 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 // runParallel();
 
 //Bai 17
-async function  runForAwaitOf() {
-    const promises = [
-        tripleAfter1s(2),
-        tripleAfter1s(3),
-        tripleAfter1s(4),
-    ]
+// async function  runForAwaitOf() {
+//     const promises = [
+//         tripleAfter1s(2),
+//         tripleAfter1s(3),
+//         tripleAfter1s(4),
+//     ]
 
-    console.log("Start");
+//     console.log("Start");
 
-    for await (const result of promises){
-        console.log("Result ", result);
-    }
-    console.log("Done")
+//     for await (const result of promises){
+//         console.log("Result ", result);
+//     }
+//     console.log("Done")
+// }
+// runForAwaitOf();
+
+//Bai 18
+async function testFetchUser() {
+  console.log("Fetching user...");
+  const user = await fetchUser(1);
+  console.log("User:", user);
 }
-runForAwaitOf();
+
+testFetchUser();

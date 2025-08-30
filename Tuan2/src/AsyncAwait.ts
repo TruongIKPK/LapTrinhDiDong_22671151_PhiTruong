@@ -44,3 +44,14 @@ export async function tripleAfter1s(num:number) {
   });
 }
 
+
+export async function fetchUser(id: number){
+  return new Promise((resolve)=>{
+    setTimeout(()=>{
+      resolve({
+        id,
+        name: `User_${id}`
+      })
+    }, 1000);
+  })
+}
