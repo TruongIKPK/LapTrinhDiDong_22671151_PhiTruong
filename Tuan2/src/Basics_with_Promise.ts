@@ -37,7 +37,7 @@ export function getRandomNumber(): Promise<number>{
 export function simulateTask(time: number): Promise<string> {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve("Task done");
+      resolve(`Task done: ${time}`);
     }, time);
   });
 }
