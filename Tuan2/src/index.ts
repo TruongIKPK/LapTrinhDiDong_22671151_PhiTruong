@@ -1,3 +1,4 @@
+import { sayHello1 } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
 
 // async function run() {
@@ -97,15 +98,19 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 // });
 
 //Bai 10
-successPromise
-.then((msg) => {
-console.log("Result:", msg);
-})
-.catch((err) => {
-console.error("Error:", err);
-})
-.finally(() => {
-console.log("Done"); 
-});
+// successPromise
+// .then((msg) => {
+// console.log("Result:", msg);
+// })
+// .catch((err) => {
+// console.error("Error:", err);
+// })
+// .finally(() => {
+// console.log("Done"); 
+// });
 
-
+//Bai 11
+// (async () => {
+//   const message = await sayHello1();
+//   console.log(message); 
+// })();
