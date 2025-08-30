@@ -27,8 +27,23 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask } from 
 // });
 
 //Bai 5
-simulateTask(2000)
-.then((msg)=>{
-    console.log(msg)
+// simulateTask(2000)
+// .then((msg)=>{
+//     console.log(msg)
+// })
+
+//Bai 6
+const tasks = [
+    simulateTask(1000),
+    simulateTask(2000),
+    simulateTask(3000),
+];
+
+Promise.all(tasks)
+.then((results)=>{
+    console.log("All task done: ", results);
 })
+.catch((err)=>{
+    console.error("Error: ", err);
+});
 
