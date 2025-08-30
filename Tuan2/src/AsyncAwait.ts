@@ -45,7 +45,7 @@ export async function tripleAfter1s(num:number) {
 }
 
 
-export async function fetchUser(id: number){
+export async function fetchUser(id: number): Promise<{id: number; name: string}>{
   return new Promise((resolve)=>{
     setTimeout(()=>{
       resolve({
@@ -54,4 +54,9 @@ export async function fetchUser(id: number){
       })
     }, 1000);
   })
+}
+
+export async function fetchUsers(ids: number[]): Promise<{ id: number; name: string }[]> {
+  const promises = ids.map((id) => fetchUser(id));
+  return Promise.all(promises);
 }
