@@ -129,14 +129,29 @@ import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filter
 // run();
 
 //Bai 15
-export async function runSequential() {
+// export async function runSequential() {
+//     console.log("Bat dau");
+
+//     const result1 = await tripleAfter1s(2);
+//     console.log("Result 1: ", result1);
+//     const result2 = await tripleAfter1s(3);
+//     console.log("Result 2: ", result2);
+//     const result3 = await tripleAfter1s(4);
+//     console.log("Result 3: ", result3);
+// }
+// runSequential();
+
+//Bai 16
+async function runParallel() {
     console.log("Bat dau");
 
-    const result1 = await tripleAfter1s(2);
-    console.log("Result 1: ", result1);
-    const result2 = await tripleAfter1s(3);
-    console.log("Result 2: ", result2);
-    const result3 = await tripleAfter1s(4);
-    console.log("Result 3: ", result3);
+    const results = await Promise.all([
+        tripleAfter1s(2),
+        tripleAfter1s(3),
+        tripleAfter1s(4)
+    ])
+
+    console.log("Results: ", results);
 }
-runSequential();
+
+runParallel();
