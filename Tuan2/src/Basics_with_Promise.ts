@@ -20,3 +20,16 @@ export function failPromise(): Promise<never>{
         }, 1000);
     });
 }
+
+export function getRandomNumber(): Promise<number>{
+    return new Promise((resolve, reject)=>{
+        setTimeout(()=>{
+            const num = Math.floor(Math.random() * 10);
+            if(num >= 0){
+                resolve(num);
+            } else{
+                reject(new Error("Failed to generate number"));
+            }
+        }, 1000);
+    })
+}

@@ -1,4 +1,4 @@
-import { sayHello, getNumber, failPromise } from "./Basics_with_Promise";
+import { sayHello, getNumber, failPromise, getRandomNumber } from "./Basics_with_Promise";
 
 // async function run() {
 //     //Bai 1
@@ -13,6 +13,16 @@ import { sayHello, getNumber, failPromise } from "./Basics_with_Promise";
 // run();
 
 //Bai 3
-failPromise()
-.then((res) => console.log(res))
-.catch((err) => console.error(err.message));
+// failPromise()
+// .then((res) => console.log(res))
+// .catch((err) => console.error(err.message));
+
+//Bai 4
+getRandomNumber()
+.then((num)=>{
+    console.log("Rundom number: ", num);
+})
+.catch((err)=>{
+    console.error("Error: ", err.message);
+});
+
