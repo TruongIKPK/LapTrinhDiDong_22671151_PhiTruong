@@ -35,3 +35,12 @@ export async function runFailTask() {
     console.log("Done (success or error).");
   }
 }
+
+export async function tripleAfter1s(num:number) {
+  return new Promise((resovle)=>{
+    setTimeout(()=>{
+      resovle(num * 3);
+    }, 1000);
+  });
+}
+
