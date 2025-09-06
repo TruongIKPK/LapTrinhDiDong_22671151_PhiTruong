@@ -4,7 +4,6 @@
     "slug": "Tuan3",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "tuan3",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
