@@ -145,3 +145,32 @@ export async function queueProcess() {
   console.log("All tasks in queue completed!");
   return results;
 }
+
+async function fetchData(url: string): Promise<any> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+  return res.json();
+}
+
+
+export async function handleMultipleCalls() {
+  const urls = [
+    "https://68305f54f504aa3c70f78f4d.mockapi.io/user",    
+    "https://invalid-url.example.com",                     
+    "https://68305f54f504aa3c70f78f4d.mockapi.io/user/1",  
+  ];
+
+  const promises = urls.map((url) => fetchData(url));
+
+  const results = await Promise.allSettled(promises);
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      console.log(`API ${index + 1} success:`, result.value);
+    } else {
+      console.error(`API ${index + 1} failed:`, result.reason);
+    }
+  });
+}

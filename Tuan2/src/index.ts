@@ -1,6 +1,6 @@
 import { fetchUser, fetchUsers, fetchUserWithTimeout, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
-import { batchProcess, downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, fetchWithRetry, postData, queueProcess, simulateWait, User } from "./FetchAPI&SimulatedIO";
+import { batchProcess, downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, fetchWithRetry, handleMultipleCalls, postData, queueProcess, simulateWait, User } from "./FetchAPI&SimulatedIO";
 
 // async function run() {
 //     //Bai 1
@@ -257,4 +257,7 @@ import { batchProcess, downloadFile, fetchMultipleTodos, fetchMultipleTodosFilte
 // batchProcess();
 
 //Bai 29
-queueProcess();
+// queueProcess();
+
+//Bai 30
+handleMultipleCalls()
