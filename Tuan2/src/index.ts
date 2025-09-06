@@ -1,6 +1,6 @@
 import { fetchUser, fetchUsers, fetchUserWithTimeout, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
-import { fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, postData, User } from "./FetchAPI&SimulatedIO";
+import { downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, postData, User } from "./FetchAPI&SimulatedIO";
 
 // async function run() {
 //     //Bai 1
@@ -217,20 +217,25 @@ import { fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, postData, Use
 // });
 
 //Bai 24
-const demoUser: User = {
-    createdAt: "2025-08-30T03:00:14.324Z",
-    name: "Jim Lockman-Lind",
-    avatar: "https://avatars.githubusercontent.com/u/83923645",
-    id: "1",
-};
+// const demoUser: User = {
+//     createdAt: "2025-08-30T03:00:14.324Z",
+//     name: "Jim Lockman-Lind",
+//     avatar: "https://avatars.githubusercontent.com/u/83923645",
+//     id: "1",
+// };
 
-postData(demoUser)
-.then((result) => {
-console.log("Posted user:", result);
-})
-.catch((err) => {
-console.error("Error:", err);
-})
-.finally(() => {
-console.log("Done");
+// postData(demoUser)
+// .then((result) => {
+// console.log("Posted user:", result);
+// })
+// .catch((err) => {
+// console.error("Error:", err);
+// })
+// .finally(() => {
+// console.log("Done");
+// });
+
+//Bai 25
+downloadFile("example.txt").then(() => {
+  console.log("All done!");
 });

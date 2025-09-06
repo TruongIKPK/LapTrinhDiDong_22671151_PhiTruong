@@ -68,3 +68,13 @@ export async function postData(user: User) {
         throw error;
     }
 }
+
+export function downloadFile(fileName: string): Promise<void> {
+  return new Promise((resolve) => {
+    console.log(`Starting download: ${fileName}...`);
+    setTimeout(() => {
+      console.log(`Download completed: ${fileName}`);
+      resolve();
+    }, 3000); 
+  });
+}
