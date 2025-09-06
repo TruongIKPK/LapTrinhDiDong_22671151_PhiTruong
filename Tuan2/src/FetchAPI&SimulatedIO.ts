@@ -88,3 +88,22 @@ export async function simulateWait() {
   await wait(5000); 
   console.log("Done");
 }
+
+export async function fetchWithRetry(url: string, retries: number): Promise<any> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("✅ Fetch successful!");
+      return data;
+    } catch (error) {
+      if (attempt === retries) {
+        throw new Error(`All ${retries} attempts failed.`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+}
