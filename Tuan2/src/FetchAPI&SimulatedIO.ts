@@ -130,3 +130,18 @@ export async function batchProcess() {
   console.log("Hoan thanh");
   console.log(results)
 }
+
+export async function queueProcess() {
+  console.log("Starting queue of tasks...");
+
+  const results: string[] = [];
+  for (let i = 1; i <= 5; i++) {
+    console.log(`Processing task ${i}...`);
+    const result = await asyncTask(i); 
+    console.log(result);
+    results.push(result);
+  }
+
+  console.log("All tasks in queue completed!");
+  return results;
+}
