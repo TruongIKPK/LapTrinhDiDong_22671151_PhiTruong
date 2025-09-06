@@ -1,6 +1,6 @@
 import { fetchUser, fetchUsers, fetchUserWithTimeout, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
-import { downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, fetchWithRetry, postData, simulateWait, User } from "./FetchAPI&SimulatedIO";
+import { batchProcess, downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, fetchWithRetry, postData, simulateWait, User } from "./FetchAPI&SimulatedIO";
 
 // async function run() {
 //     //Bai 1
@@ -242,12 +242,16 @@ import { downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo,
 //Bai 26
 // simulateWait();
 
-const url = "https://68305f54f504aa3c70f78f4d.mockapi.io/user";
+//Bai 27
+// const url = "https://68305f54f504aa3c70f78f4d.mockapi.io/user";
 
-fetchWithRetry(url, 3)
-  .then((data) => {
-    console.log("Du lieu:", data);
-  })
-  .catch((err) => {
-    console.error("Loi:", err.message);
-  });
+// fetchWithRetry(url, 3)
+//   .then((data) => {
+//     console.log("Du lieu:", data);
+//   })
+//   .catch((err) => {
+//     console.error("Loi:", err.message);
+//   });
+
+//Bai 28
+batchProcess();

@@ -107,3 +107,26 @@ export async function fetchWithRetry(url: string, retries: number): Promise<any>
     }
   }
 }
+
+function asyncTask(id: number): Promise<string>{
+  return new Promise((resolve)=> {
+    const delay = Math.floor(Math.random() * 2000) + 1000;
+    setTimeout(() => {
+      resolve(`Nhiem vu ${id}`)
+    }, delay);
+  });
+}
+
+export async function batchProcess() {
+  console.log("Hoan thanh task");
+  const tasks = [
+    asyncTask(1),
+    asyncTask(2),
+    asyncTask(3),
+    asyncTask(4),
+    asyncTask(5)
+  ];
+  const results = await Promise.all(tasks);
+  console.log("Hoan thanh");
+  console.log(results)
+}
