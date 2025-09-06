@@ -78,3 +78,13 @@ export function downloadFile(fileName: string): Promise<void> {
     }, 3000); 
   });
 }
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function simulateWait() {
+  console.log("Bắt đầu chờ 5s");
+  await wait(5000); 
+  console.log("Done");
+}

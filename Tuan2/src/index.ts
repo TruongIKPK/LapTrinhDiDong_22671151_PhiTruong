@@ -1,6 +1,6 @@
 import { fetchUser, fetchUsers, fetchUserWithTimeout, runFailTask, runTask, sayHello1, tripleAfter1s } from "./AsyncAwait";
 import { sayHello, getNumber, failPromise, getRandomNumber, simulateTask, filterEvenNumbers , successPromise} from "./Basics_with_Promise";
-import { downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, postData, User } from "./FetchAPI&SimulatedIO";
+import { downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo, postData, simulateWait, User } from "./FetchAPI&SimulatedIO";
 
 // async function run() {
 //     //Bai 1
@@ -236,6 +236,8 @@ import { downloadFile, fetchMultipleTodos, fetchMultipleTodosFilters, fetchTodo,
 // });
 
 //Bai 25
-downloadFile("example.txt").then(() => {
-  console.log("All done!");
-});
+// downloadFile("example.txt").then(() => {
+//   console.log("All done!");
+// });
+//Bai 26
+simulateWait();
