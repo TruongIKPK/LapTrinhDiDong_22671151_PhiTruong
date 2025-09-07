@@ -41,6 +41,33 @@ export default function login(){
                 <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>LOGIN</Text>
                 </TouchableOpacity>
+
+                <Text style={styles.subtitle}>
+                    When you agree to terms and conditions
+                </Text>
+
+                <TouchableOpacity>
+                    <Text style={styles.link}>Forgot your password?</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.or}>Or login with</Text>
+
+                <View style={styles.socialRow}>
+                    {/* Facebook */}
+                    <TouchableOpacity style={[styles.socialButton, { backgroundColor: '#3b5998' }]}>
+                    <Ionicons name="logo-facebook" size={24} color="#fff" />
+                    </TouchableOpacity>
+
+                    {/* Zalo (dùng chữ Z vì Ionicons chưa có logo Zalo) */}
+                    <TouchableOpacity style={[styles.socialButton, { backgroundColor: '#0066ff' }]}>
+                    <Text style={styles.socialText}>Z</Text>
+                    </TouchableOpacity>
+
+                    {/* Google */}
+                    <TouchableOpacity style={[styles.socialButton, { borderWidth: 1, borderColor: '#ccc' }]}>
+                    <Ionicons name="logo-google" size={24} color="#DB4437" />
+                    </TouchableOpacity>
+                </View>
             </View>
         </SafeAreaView>
     )
@@ -93,5 +120,38 @@ const styles = StyleSheet.create({
     buttonText:{
         color: '#fff', 
         textAlign: 'center'
-    }
+    },
+    subtitle: {
+    fontSize: 14,
+    color: '#333',
+    marginTop: 40,
+    marginBottom: 8,
+  },
+  link: {
+    fontSize: 14,
+    color: 'blue',
+    textDecorationLine: 'underline',
+    marginBottom: 15,
+  },
+  or: {
+    fontSize: 14,
+    marginBottom: 30,
+    color: '#444',
+  },
+  socialRow: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  socialButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  }
 })
