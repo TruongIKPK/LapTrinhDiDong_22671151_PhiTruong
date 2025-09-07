@@ -1,156 +1,122 @@
-// import React, {useState} from 'react';
-// import { 
-//   View, 
-//   Text, 
-//   StyleSheet, 
-//   TouchableOpacity, 
-//   SafeAreaView,
-//   StatusBar,
-//   Image,
-//   TextInput,
-// } from 'react-native';
-// import { Ionicons } from '@expo/vector-icons';
-// import { LinearGradient } from 'expo-linear-gradient';
-// export default function login(){
-//     const [selected, setSelected] = useState(null); 
-//     const [showPassword, setShowPassword] = useState(false);
-//     const toggleShowPassword = () => {
-//         setShowPassword(!showPassword);
-//     };
-//     return(
-//         <SafeAreaView style={styles.container}>
-//             <View style={styles.background}>
-//                 <Text style={styles.title}>REGISTER</Text>
-//                 <TextInput
-//                     style={styles.inputContainer}
-//                     placeholder="Name"
-//                     placeholderTextColor="#999"
-//                     secureTextEntry={!showPassword}
-//                 />
-//                 <TextInput
-//                     style={styles.inputContainer}
-//                     placeholder="Phone"
-//                     placeholderTextColor="#999"
-//                     secureTextEntry={!showPassword}
-//                 />
-//                 <TextInput
-//                     style={styles.inputContainer}
-//                     placeholder="Email"
-//                     placeholderTextColor="#999"
-//                     secureTextEntry={!showPassword}
-//                 />
-//                 <View style={styles.inputContainer}>>
-//                     <TextInput
-//                         placeholder="Password"
-//                         placeholderTextColor="#999"
-//                         secureTextEntry={!showPassword}
-//                     />
-//                     <TouchableOpacity onPress={toggleShowPassword}>
-//                         <Ionicons 
-//                             name={showPassword ? "eye-outline" : "eye-off-outline"} 
-//                             size={24} 
-//                             color="#666" 
-//                         />
-//                     </TouchableOpacity> 
-//                 </View>
-//                 <TextInput
-//                         style={styles.inputContainer}
-//                         placeholder="Birthday"
-//                         placeholderTextColor="#999"
-//                         secureTextEntry={!showPassword}
-//                     />
-//                 <TouchableOpacity style={styles.button}>
-//                     <Text style={styles.buttonText}>REGISTER</Text>
-//                 </TouchableOpacity>
+import React, {useState} from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  SafeAreaView,
+  StatusBar,
+  Image,
+  TextInput,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+export default function login(){
+    const [showPassword, setShowPassword] = useState(false);
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+    return(
+        <SafeAreaView style={styles.container}>
+            <View style={styles.background}>
+                <Text style={styles.title}>Login</Text>
+                <View style={styles.main}>
+                    <View style={styles.inputWrapper}>
+                        <Ionicons name="person" size={22} color="#000" style={styles.icon} />
+                        <TextInput
+                        style={styles.input}
+                        placeholder="Name"
+                        placeholderTextColor="#444"
+                        />
+                    </View>
+                    <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed" size={22} color="#000" style={styles.icon} />
+                        <TextInput
+                        style={styles.input}
+                        placeholder="Password"
+                        placeholderTextColor="#444"
+                        secureTextEntry
+                        />
+                        <TouchableOpacity onPress={toggleShowPassword}>
+                            <Ionicons 
+                                name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                                size={24} 
+                                color="#666" 
+                            />
+                        </TouchableOpacity>
+                    </View>
 
-//                 <View style={styles.selec}>
-//                     <TouchableOpacity
-//                         style={styles.option}
-//                         onPress={() => setSelected('male')}
-//                     >
-//                         <Ionicons
-//                         name={selected === 'male' ? 'radio-button-on' : 'radio-button-off'}
-//                         size={22}
-//                         color="black"
-//                         />
-//                         <Text style={styles.label}>Male</Text>
-//                     </TouchableOpacity>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>LOGIN</Text>
+                    </TouchableOpacity>
 
-//                     <TouchableOpacity
-//                         style={styles.option}
-//                         onPress={() => setSelected('female')}
-//                     >
-//                         <Ionicons
-//                         name={selected === 'female' ? 'radio-button-on' : 'radio-button-off'}
-//                         size={22}
-//                         color="black"
-//                         />
-//                         <Text style={styles.label}>Female</Text>
-//                     </TouchableOpacity>
-//                 </View>
+                    <Text style={styles.subtitle}>
+                        CREATE ACCOUNT
+                    </Text>
+                    sad
+                </View>
+            </View>
+        </SafeAreaView>
+    )
+}
 
-//                 <Text style={styles.subtitle}>
-//                     When you agree to terms and conditions
-//                 </Text>
-//             </View>
-//         </SafeAreaView>
-//     )
-// }
-
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//     },
-//         background: {
-//         flex: 1,
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//         backgroundColor:'#d8efdf'
-//     },
-//         title:{
-//           textAlign: 'center',
-//         fontWeight: '600',
-//         fontSize: 30,
-//         color: 'black', 
-//         marginBottom: 40,
-//     },
-//     inputContainer:{
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//         justifyContent: 'space-between',
-//         backgroundColor: '#cae1d1',
-//         width: '90%',
-//         paddingTop: 15,
-//         paddingBottom: 15,
-//         paddingLeft: 15,
-//         paddingRight: 15,
-//         marginBottom: 15,
-//     },
-//     selec:{
-//         flexDirection: 'row',
-//         alignItems: 'flex-start',
-//         marginBottom: 20,
-//     },
-//     option: {
-//         flexDirection: 'row',
-//         marginRight: 20
-//     },
-//     label: {
-//         marginLeft: 6,
-//         fontSize: 16,
-//         color: '#000',
-//     },
-//     button:{
-//         backgroundColor: '#c34e3b',
-//         fontWeight: "700",
-//         width: '80%',
-//         paddingTop: 15,
-//         paddingBottom: 15,
-//         marginTop: 20,
-//         marginBottom: 20,
-//     },
-//     buttonText:{
-//         color: '#fff', 
-//         textAlign: 'center'
-//     },
-// })
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    main:{
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    title:{
+        textAlign: 'left',
+        fontWeight: '900',
+        fontSize: 30,
+        color: 'black', 
+        marginBottom: 70,
+        marginLeft: 50,  
+    },
+    background: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor:'#d6b626ff'
+    },
+    inputWrapper: {
+        width: '90%',
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFD633",
+        paddingHorizontal: 10,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 1)',
+    },
+    icon: {
+        marginRight: 8,
+    },
+    input: {
+        flex: 1,
+        height: 45,
+        fontSize: 16,
+        color: "#000",
+    },
+    button:{
+        backgroundColor: '#000000ff',
+        fontWeight: "700",
+        width: '80%',
+        paddingTop: 15,
+        paddingBottom: 15,
+        marginTop: 20
+    },
+    buttonText:{
+        color: '#fff', 
+        textAlign: 'center'
+    },
+    subtitle: {
+        fontSize: 14,
+        fontWeight: '900',
+        color: '#333',
+        marginTop: 40,
+        marginBottom: 8,
+    }
+})
