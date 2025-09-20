@@ -1,27 +1,81 @@
-import { SafeAreaView } from "react-native-safe-area-context"
-import React from "react"
-import { View, Image, Text, TouchableOpacity } from "react-native"
+import React from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ImageSourcePropType } from 'react-native';
 
 interface ChatProductItemProps {
-    productImg: any,
-    productName: string,
-    shopName: string,
+    productImg: ImageSourcePropType;
+    productName: string;
+    shopName: string;
 }
 
-export const ChatProductItem: React.FC<ChatProductItemProps> = ({ productImg, productName, shopName }) => {
+export function ChatProductItem({ productImg, productName, shopName }: ChatProductItemProps) {
     return (
-        <SafeAreaView>
-            <View>
-                {/* Hình ảnh lấy từ asset */}
-                <Image source={productImg} />
-                <View>
-                    <Text>{productName}</Text>
-                    <Text>{shopName}</Text>
-                </View>
-                <TouchableOpacity>
-                    <Text>Chat</Text>
-                </TouchableOpacity>
+        <View style={styles.container}>
+            <Image source={productImg} style={styles.productImage} />
+            <View style={styles.textContainer}>
+                <Text style={styles.productName} numberOfLines={2}>
+                    {productName}
+                </Text>
+                <Text style={styles.shopName}>
+                    Shop: {shopName}
+                </Text>
             </View>
-        </SafeAreaView>
-    )
+            <TouchableOpacity style={styles.chatButton}>
+                <Text style={styles.chatButtonText}>Chat</Text>
+            </TouchableOpacity>
+        </View>
+    );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 8,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    productImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 8,
+        marginRight: 12,
+        resizeMode: 'cover',
+    },
+    textContainer: {
+        flex: 1,
+        marginRight: 12,
+    },
+    productName: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 4,
+    },
+    shopName: {
+        fontSize: 12,
+        color: '#E53E3E',
+        fontWeight: '500',
+    },
+    chatButton: {
+        backgroundColor: '#E53E3E',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 4,
+        minWidth: 60,
+        alignItems: 'center',
+    },
+    chatButtonText: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+});
