@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Tuan5",
+    "slug": "Tuan5",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "tuan5",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen"
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

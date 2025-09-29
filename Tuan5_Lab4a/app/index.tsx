@@ -15,6 +15,21 @@ export default function HomeScreen() {
         >
           <Text style={styles.buttonText}>Chat với Shop</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => router.push('/product-list')}
+        >
+          <Text style={styles.buttonText}>Xem sản phẩm</Text>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => router.push('/user-list')}
+        >
+          <Text style={styles.buttonText}>Xem người dùng</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -42,6 +57,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 8,
     width: '100%',
+    marginBottom: 20,
   },
   buttonText: {
     color: 'white',
