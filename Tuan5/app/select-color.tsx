@@ -70,7 +70,16 @@ const SelectColor: React.FC<ProductProps> = ({
             <View style={styles.buttonContainer}>
                 <TouchableOpacity 
                     style={styles.doneButton}
-                    onPress={() => router.back()}
+                    onPress={() => {
+                        const selectedColorData = colorData[selectedColor];
+                        router.push({
+                            pathname: '/(tabs)',
+                            params: { 
+                                selectedColor: selectedColorData.image,
+                                colorName: selectedColorData.name 
+                            }
+                        });
+                    }}
                 >
                     <Text style={styles.doneButtonText}>XONG</Text>
                 </TouchableOpacity>
