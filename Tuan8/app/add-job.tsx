@@ -2,13 +2,26 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { todoService } from '../api/todoService';
+import { SQLiteProvider, useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 
 export default function AddJob() {
+  
+  return (
+    <SafeAreaView style={styles.container}>
+      <SQLiteProvider databaseName="test.db">
+        <Content />
+      </SQLiteProvider>
+    </SafeAreaView>
+  );
+}
+
+export function Content() {
+
   const [jobTitle, setJobTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const params = useLocalSearchParams();
   const userName = params.userName as string || 'Twinkle';
+  const db = useSQLiteContext();
 
   const handleFinish = async () => {
     if (!jobTitle.trim()) {
@@ -18,7 +31,7 @@ export default function AddJob() {
 
     try {
       setLoading(true);
-      await todoService.createTodo(jobTitle.trim());
+      await db.runAsync('INSERT INTO todos (title, completed) VALUES (?, ?)', jobTitle.trim(), 0);
       Alert.alert(
         'Thành công', 
         'Đã thêm công việc mới',
@@ -39,8 +52,9 @@ export default function AddJob() {
     }
   };
 
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1 }}>
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <Image 
@@ -52,7 +66,7 @@ export default function AddJob() {
             <Text style={styles.subGreeting}>Have a great day ahead</Text>
           </View>
         </View>
-        
+
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
@@ -90,9 +104,10 @@ export default function AddJob() {
           style={styles.noteImage}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
