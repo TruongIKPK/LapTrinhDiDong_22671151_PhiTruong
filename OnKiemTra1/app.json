@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "OnKiemTra",
-    "slug": "OnKiemTra",
+    "name": "OnKiemTra1",
+    "slug": "OnKiemTra1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "onkiemtra",
+    "scheme": "onkiemtra1",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -38,7 +38,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
