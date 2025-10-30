@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -9,18 +9,18 @@ import {
   Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-type Note = {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string; // ISO string or formatted
-};
+import { useRouter } from "expo-router";
+import { useNotes } from "./NotesContext";
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { notes, addNote } = useNotes();
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [notes, setNotes] = useState<Note[]>([]);
+
+  const titleRef = useRef<TextInput | null>(null);
+  const contentRef = useRef<TextInput | null>(null);
 
   function formatDate(iso?: string) {
     const d = iso ? new Date(iso) : new Date();
@@ -30,33 +30,33 @@ export default function HomeScreen() {
     return `${dd}/${mm}/${yy}`;
   }
 
-  function addNote() {
+  function onAdd() {
     const t = title.trim();
     const c = content.trim();
     if (!t && !c) return;
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: t || "Không có tiêu đề",
-      content: c,
-      createdAt: new Date().toISOString(),
-    };
-    setNotes((s) => [newNote, ...s]);
+    const created = addNote(t, c);
+    // clear controlled values and clear native inputs via refs
     setTitle("");
     setContent("");
+    titleRef.current?.clear();
+    contentRef.current?.clear();
     Keyboard.dismiss();
+    // optional: navigate to new note detail immediately
+    router.push(`/notes/${created.id}`);
   }
 
-  function renderItem({ item }: { item: Note }) {
+  function renderItem({ item }: any) {
     return (
-      <View style={styles.noteCard}>
+      <TouchableOpacity
+        onPress={() => router.push(`/notes/${item.id}`)}
+        style={styles.noteCard}
+      >
         <View style={styles.row}>
           <Text style={styles.noteTitle}>{item.title}</Text>
           <Text style={styles.noteDate}>{formatDate(item.createdAt)}</Text>
         </View>
-        {item.content ? (
-          <Text style={styles.noteText}>{item.content}</Text>
-        ) : null}
-      </View>
+        {item.content ? <Text style={styles.noteText}>{item.content}</Text> : null}
+      </TouchableOpacity>
     );
   }
 
@@ -68,6 +68,7 @@ export default function HomeScreen() {
 
       <View style={styles.inputContainer}>
         <TextInput
+          ref={titleRef}
           style={styles.titleInput}
           placeholder="Tiêu đề công việc..."
           value={title}
@@ -75,6 +76,7 @@ export default function HomeScreen() {
           returnKeyType="next"
         />
         <TextInput
+          ref={contentRef}
           style={styles.contentInput}
           placeholder="Nội dung..."
           value={content}
@@ -82,9 +84,9 @@ export default function HomeScreen() {
           multiline
           numberOfLines={3}
           returnKeyType="done"
-          onSubmitEditing={addNote}
+          onSubmitEditing={onAdd}
         />
-        <TouchableOpacity style={styles.addButton} onPress={addNote}>
+        <TouchableOpacity style={styles.addButton} onPress={onAdd}>
           <Text style={styles.addButtonText}>Thêm</Text>
         </TouchableOpacity>
       </View>
