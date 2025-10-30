@@ -10,24 +10,52 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Note = { id: string; text: string };
+type Note = {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string; // ISO string or formatted
+};
 
 export default function HomeScreen() {
-  const [text, setText] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [notes, setNotes] = useState<Note[]>([]);
 
+  function formatDate(iso?: string) {
+    const d = iso ? new Date(iso) : new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yy = d.getFullYear();
+    return `${dd}/${mm}/${yy}`;
+  }
+
   function addNote() {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    setNotes((s) => [{ id: Date.now().toString(), text: trimmed }, ...s]);
-    setText("");
+    const t = title.trim();
+    const c = content.trim();
+    if (!t && !c) return;
+    const newNote: Note = {
+      id: Date.now().toString(),
+      title: t || "Không có tiêu đề",
+      content: c,
+      createdAt: new Date().toISOString(),
+    };
+    setNotes((s) => [newNote, ...s]);
+    setTitle("");
+    setContent("");
     Keyboard.dismiss();
   }
 
   function renderItem({ item }: { item: Note }) {
     return (
       <View style={styles.noteCard}>
-        <Text style={styles.noteText}>{item.text}</Text>
+        <View style={styles.row}>
+          <Text style={styles.noteTitle}>{item.title}</Text>
+          <Text style={styles.noteDate}>{formatDate(item.createdAt)}</Text>
+        </View>
+        {item.content ? (
+          <Text style={styles.noteText}>{item.content}</Text>
+        ) : null}
       </View>
     );
   }
@@ -38,14 +66,23 @@ export default function HomeScreen() {
         <Text style={styles.title}>Note App</Text>
       </View>
 
-      <View style={styles.inputRow}>
+      <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
-          placeholder="Viết ghi chú..."
-          value={text}
-          onChangeText={setText}
-          onSubmitEditing={addNote}
+          style={styles.titleInput}
+          placeholder="Tiêu đề công việc..."
+          value={title}
+          onChangeText={setTitle}
+          returnKeyType="next"
+        />
+        <TextInput
+          style={styles.contentInput}
+          placeholder="Nội dung..."
+          value={content}
+          onChangeText={setContent}
+          multiline
+          numberOfLines={3}
           returnKeyType="done"
+          onSubmitEditing={addNote}
         />
         <TouchableOpacity style={styles.addButton} onPress={addNote}>
           <Text style={styles.addButtonText}>Thêm</Text>
@@ -59,7 +96,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Chưa có ghi chú — thêm ngay!</Text>
+            <Text style={styles.emptyText}>Chưa có công việc — thêm ngay!</Text>
           </View>
         }
       />
@@ -84,23 +121,32 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0B4F6C",
   },
-  inputRow: {
-    flexDirection: "row",
-    marginTop: 16,
-    marginBottom: 8,
-    alignItems: "center",
+  inputContainer: {
+    marginTop: 14,
+    marginBottom: 10,
   },
-  input: {
-    flex: 1,
+  titleInput: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#E1E8EE",
-    marginRight: 8,
+    marginBottom: 8,
+    fontWeight: "600",
+  },
+  contentInput: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E1E8EE",
+    textAlignVertical: "top",
   },
   addButton: {
+    marginTop: 10,
+    alignSelf: "flex-end",
     backgroundColor: "#0B7FC7",
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -111,14 +157,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   list: {
-    paddingTop: 8,
+    paddingTop: 12,
     paddingBottom: 32,
   },
   noteCard: {
     backgroundColor: "#fff",
     padding: 12,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#E6F0F8",
     shadowColor: "#000",
@@ -126,9 +172,24 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 1,
   },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  noteTitle: {
+    color: "#183C4A",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  noteDate: {
+    color: "#7A97A7",
+    fontSize: 12,
+  },
   noteText: {
     color: "#183C4A",
-    fontSize: 15,
+    fontSize: 14,
   },
   empty: {
     marginTop: 40,
