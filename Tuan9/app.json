@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "OnKiemTra1",
-    "slug": "OnKiemTra1",
+    "name": "Tuan9",
+    "slug": "Tuan9",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "onkiemtra1",
+    "scheme": "tuan9",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -38,8 +38,7 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      "expo-sqlite"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
