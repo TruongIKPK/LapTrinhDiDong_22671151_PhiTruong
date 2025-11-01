@@ -1,0 +1,502 @@
+import React, { useState } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+
+// Interface cho Transaction (Thu-Chi)
+interface Transaction {
+  id: number;
+  title: string;
+  amount: number;
+  category: string;
+  description?: string;
+  createdAt: string;
+  type: 'income' | 'expense'; // Thu hoặc Chi
+}
+
+export default function ExpenseTracker() {
+  // State để lưu danh sách giao dịch Thu-Chi (demo data)
+  const [transactions, setTransactions] = useState<Transaction[]>([
+    {
+      id: 1,
+      title: "Lương tháng 11",
+      amount: 15000000,
+      category: "Lương",
+      description: "Lương cơ bản + thưởng",
+      createdAt: "2024-11-01",
+      type: "income"
+    },
+    {
+      id: 2,
+      title: "Mua sắm thực phẩm",
+      amount: 250000,
+      category: "Thực phẩm",
+      description: "Mua rau củ và thịt cá",
+      createdAt: "2024-11-01",
+      type: "expense"
+    },
+    {
+      id: 3,
+      title: "Bán đồ cũ",
+      amount: 500000,
+      category: "Bán hàng",
+      description: "Bán laptop cũ",
+      createdAt: "2024-10-31",
+      type: "income"
+    },
+    {
+      id: 4,
+      title: "Xăng xe",
+      amount: 180000,
+      category: "Giao thông",
+      description: "Đổ xăng xe máy",
+      createdAt: "2024-11-01",
+      type: "expense"
+    },
+    {
+      id: 5,
+      title: "Cafe với bạn",
+      amount: 120000,
+      category: "Giải trí",
+      description: "Uống cafe tại Highland",
+      createdAt: "2024-10-31",
+      type: "expense"
+    }
+  ]);
+
+  // Tính tổng thu và chi
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const totalExpense = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const netAmount = totalIncome - totalExpense;
+
+  // Format số tiền
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
+  };
+
+  // Render item giao dịch Thu-Chi
+  const renderTransactionItem = ({ item }: { item: Transaction }) => (
+    <TouchableOpacity style={styles.transactionItem}>
+      <View style={styles.transactionInfo}>
+        <View style={styles.transactionHeader}>
+          <View style={styles.titleSection}>
+            <Text style={styles.transactionTitle}>{item.title}</Text>
+            <View style={styles.typeContainer}>
+              <View style={[
+                styles.typeBadge, 
+                item.type === 'income' ? styles.incomeBadge : styles.expenseBadge
+              ]}>
+                <Ionicons 
+                  name={item.type === 'income' ? 'arrow-down' : 'arrow-up'} 
+                  size={12} 
+                  color="#fff" 
+                />
+                <Text style={styles.typeText}>
+                  {item.type === 'income' ? 'Thu' : 'Chi'}
+                </Text>
+              </View>
+            </View>
+          </View>
+          <Text style={[
+            styles.transactionAmount,
+            item.type === 'income' ? styles.incomeAmount : styles.expenseAmount
+          ]}>
+            {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
+          </Text>
+        </View>
+        <View style={styles.transactionDetails}>
+          <Text style={styles.transactionCategory}>
+            <Ionicons name="pricetag" size={14} color="#6c757d" /> {item.category}
+          </Text>
+          <Text style={styles.transactionDate}>
+            <Ionicons name="calendar" size={14} color="#6c757d" /> {item.createdAt}
+          </Text>
+        </View>
+        {item.description && (
+          <Text style={styles.transactionDescription}>{item.description}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>EXPENSE TRACKER</Text>
+          <TouchableOpacity style={styles.menuButton}>
+            <Ionicons name="menu" size={24} color="#333" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Summary Card */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryContent}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Số dư hiện tại</Text>
+              <Text style={[
+                styles.summaryAmount,
+                netAmount >= 0 ? styles.positiveAmount : styles.negativeAmount
+              ]}>
+                {formatCurrency(Math.abs(netAmount))}
+              </Text>
+            </View>
+            <View style={styles.summaryStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{formatCurrency(totalIncome)}</Text>
+                <Text style={styles.statLabel}>Tổng Thu</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{formatCurrency(totalExpense)}</Text>
+                <Text style={styles.statLabel}>Tổng Chi</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Ionicons name="add-circle" size={24} color="#fff" />
+            <Text style={styles.actionText}>Thêm chi tiêu</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, styles.secondaryButton]}>
+            <Ionicons name="pie-chart" size={24} color="#007bff" />
+            <Text style={[styles.actionText, styles.secondaryText]}>Thống kê</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Recent Transactions */}
+        <View style={styles.recentSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Giao dịch gần đây</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>Xem tất cả</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <FlatList
+            data={transactions}
+            renderItem={renderTransactionItem}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            style={styles.transactionList}
+          />
+        </View>
+
+        {/* Floating Add Button */}
+        <TouchableOpacity style={styles.floatingButton}>
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  content: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#212529',
+    letterSpacing: 1,
+  },
+  menuButton: {
+    padding: 5,
+  },
+  summaryCard: {
+    margin: 20,
+    backgroundColor: '#007bff',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  summaryContent: {
+    padding: 20,
+  },
+  summaryItem: {
+    marginBottom: 15,
+  },
+  summaryLabel: {
+    color: '#fff',
+    fontSize: 14,
+    opacity: 0.9,
+    marginBottom: 5,
+  },
+  summaryAmount: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  positiveAmount: {
+    color: '#28a745',
+  },
+  negativeAmount: {
+    color: '#dc3545',
+  },
+  summaryStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  statLabel: {
+    color: '#fff',
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#fff',
+    opacity: 0.3,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  secondaryButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#007bff',
+  },
+  actionText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryText: {
+    color: '#007bff',
+  },
+  recentSection: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#212529',
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#007bff',
+    fontWeight: '500',
+  },
+  expenseList: {
+    flex: 1,
+  },
+  transactionList: {
+    flex: 1,
+  },
+  transactionItem: {
+    backgroundColor: '#fff',
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  transactionInfo: {
+    padding: 16,
+  },
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  titleSection: {
+    flex: 1,
+    marginRight: 10,
+  },
+  transactionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+    marginBottom: 4,
+  },
+  typeContainer: {
+    marginTop: 2,
+  },
+  typeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  incomeBadge: {
+    backgroundColor: '#28a745',
+  },
+  expenseBadge: {
+    backgroundColor: '#dc3545',
+  },
+  typeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  transactionAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  incomeAmount: {
+    color: '#28a745',
+  },
+  transactionDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  transactionCategory: {
+    fontSize: 14,
+    color: '#6c757d',
+    flex: 1,
+  },
+  transactionDate: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
+  transactionDescription: {
+    fontSize: 13,
+    color: '#6c757d',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  expenseItem: {
+    backgroundColor: '#fff',
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  expenseInfo: {
+    padding: 16,
+  },
+  expenseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  expenseTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+    flex: 1,
+    marginRight: 10,
+  },
+  expenseAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#dc3545',
+  },
+  expenseDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  expenseCategory: {
+    fontSize: 14,
+    color: '#6c757d',
+    flex: 1,
+  },
+  expenseDate: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
+  expenseDescription: {
+    fontSize: 13,
+    color: '#6c757d',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#007bff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+});
