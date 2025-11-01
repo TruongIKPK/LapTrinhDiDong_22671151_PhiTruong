@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert, TextInput, RefreshControl } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert, TextInput, RefreshControl, Modal, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from 'expo-router';
 import { initDatabase, getAllTransactions, softDeleteTransaction, Transaction as DBTransaction } from '../lib/db';
+import { syncAllData, testApiConnection } from '../lib/syncApi';
 
 // Interface cho Transaction (Thu-Chi) - sử dụng từ db.ts
 interface Transaction extends DBTransaction {}
@@ -18,6 +19,8 @@ export default function ExpenseTracker() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Khởi tạo database và load dữ liệu
   useEffect(() => {
@@ -152,6 +155,63 @@ export default function ExpenseTracker() {
     }
   };
 
+  // Xử lý đồng bộ dữ liệu
+  const handleSync = async () => {
+    // Kiểm tra kết nối API trước
+    const isConnected = await testApiConnection();
+    if (!isConnected) {
+      Alert.alert(
+        'Lỗi kết nối',
+        'Không thể kết nối đến API. Vui lòng kiểm tra cấu hình API trong màn hình cài đặt.',
+        [
+          { text: 'Hủy', style: 'cancel' },
+          { text: 'Cài đặt', onPress: () => router.push('./settings') }
+        ]
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Xác nhận đồng bộ',
+      'Thao tác này sẽ xóa toàn bộ dữ liệu trên API và upload lại tất cả giao dịch từ thiết bị. Bạn có chắc chắn?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        { 
+          text: 'Đồng bộ', 
+          style: 'destructive',
+          onPress: performSync 
+        }
+      ]
+    );
+  };
+
+  const performSync = async () => {
+    setIsSyncing(true);
+    try {
+      // Lấy tất cả giao dịch local (chỉ những giao dịch chưa bị xóa)
+      const localTransactions = transactions;
+      
+      await syncAllData(localTransactions);
+      
+      Alert.alert(
+        'Thành công',
+        `Đã đồng bộ thành công ${localTransactions.length} giao dịch lên API!`
+      );
+    } catch (error) {
+      console.error('Sync failed:', error);
+      Alert.alert(
+        'Lỗi đồng bộ',
+        'Không thể đồng bộ dữ liệu. Vui lòng thử lại sau.'
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuVisible(!isMenuVisible);
+  };
+
   // Tính tổng thu và chi
   const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
@@ -253,9 +313,14 @@ export default function ExpenseTracker() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>EXPENSE TRACKER</Text>
-          <TouchableOpacity style={styles.menuButton} onPress={toggleSearch}>
-            <Ionicons name={isSearchVisible ? "close" : "search"} size={24} color="#333" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerActionButton} onPress={toggleSearch}>
+              <Ionicons name={isSearchVisible ? "close" : "search"} size={24} color="#333" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerActionButton} onPress={toggleMenu}>
+              <Ionicons name="ellipsis-vertical" size={24} color="#333" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Bar */}
@@ -279,6 +344,70 @@ export default function ExpenseTracker() {
             </View>
           </View>
         )}
+
+        {/* Menu Modal */}
+        <Modal
+          visible={isMenuVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsMenuVisible(false)}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setIsMenuVisible(false)}
+          >
+            <View style={styles.menuContainer}>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  handleSync();
+                }}
+              >
+                <Ionicons name="sync" size={20} color="#007bff" />
+                <Text style={styles.menuItemText}>Đồng bộ dữ liệu</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  router.push('./settings');
+                }}
+              >
+                <Ionicons name="settings" size={20} color="#6c757d" />
+                <Text style={styles.menuItemText}>Cài đặt API</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  router.push('./trash');
+                }}
+              >
+                <Ionicons name="trash" size={20} color="#dc3545" />
+                <Text style={styles.menuItemText}>Thùng rác</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Sync Progress Modal */}
+        <Modal
+          visible={isSyncing}
+          transparent={true}
+          animationType="fade"
+        >
+          <View style={styles.syncModalOverlay}>
+            <View style={styles.syncContainer}>
+              <ActivityIndicator size="large" color="#007bff" />
+              <Text style={styles.syncText}>Đang đồng bộ dữ liệu...</Text>
+              <Text style={styles.syncSubText}>Vui lòng không tắt ứng dụng</Text>
+            </View>
+          </View>
+        </Modal>
 
         {/* Summary Card */}
         <View style={styles.summaryCard}>
@@ -384,6 +513,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#212529',
     letterSpacing: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerActionButton: {
+    padding: 5,
   },
   menuButton: {
     padding: 5,
@@ -725,5 +862,73 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     marginLeft: 8,
+  },
+  // Menu and Sync styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: 70,
+    paddingRight: 20,
+  },
+  menuContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#212529',
+    fontWeight: '500',
+  },
+  syncModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  syncContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  syncText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#212529',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  syncSubText: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
