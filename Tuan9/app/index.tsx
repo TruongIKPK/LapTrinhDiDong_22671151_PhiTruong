@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -13,7 +13,10 @@ export default function ExpenseTracker() {
   
   // State để lưu danh sách giao dịch Thu-Chi từ database
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   // Khởi tạo database và load dữ liệu
   useEffect(() => {
@@ -56,10 +59,12 @@ export default function ExpenseTracker() {
       const dbTransactions = await getAllTransactions();
       console.log('Loaded transactions:', dbTransactions.length);
       setTransactions(dbTransactions);
+      setFilteredTransactions(dbTransactions);
     } catch (error) {
       console.error('Error loading transactions:', error);
       // Set empty array on error to prevent crashes
       setTransactions([]);
+      setFilteredTransactions([]);
       Alert.alert(
         'Lỗi tải dữ liệu',
         'Không thể tải danh sách giao dịch. Vui lòng thử lại.',
@@ -107,12 +112,35 @@ export default function ExpenseTracker() {
     );
   };
 
+  // Xử lý tìm kiếm
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredTransactions(transactions);
+    } else {
+      const filtered = transactions.filter(transaction =>
+        transaction.title.toLowerCase().includes(query.toLowerCase()) ||
+        transaction.category.toLowerCase().includes(query.toLowerCase()) ||
+        (transaction.description && transaction.description.toLowerCase().includes(query.toLowerCase()))
+      );
+      setFilteredTransactions(filtered);
+    }
+  };
+
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible);
+    if (isSearchVisible) {
+      setSearchQuery('');
+      setFilteredTransactions(transactions);
+    }
+  };
+
   // Tính tổng thu và chi
-  const totalIncome = transactions
+  const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const totalExpense = transactions
+  const totalExpense = filteredTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   
@@ -208,10 +236,32 @@ export default function ExpenseTracker() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>EXPENSE TRACKER</Text>
-          <TouchableOpacity style={styles.menuButton}>
-            <Ionicons name="menu" size={24} color="#333" />
+          <TouchableOpacity style={styles.menuButton} onPress={toggleSearch}>
+            <Ionicons name={isSearchVisible ? "close" : "search"} size={24} color="#333" />
           </TouchableOpacity>
         </View>
+
+        {/* Search Bar */}
+        {isSearchVisible && (
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="search" size={20} color="#6c757d" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Tìm kiếm theo tiêu đề, danh mục, mô tả..."
+                placeholderTextColor="#6c757d"
+                value={searchQuery}
+                onChangeText={handleSearch}
+                autoFocus={true}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => handleSearch('')} style={styles.clearButton}>
+                  <Ionicons name="close-circle" size={20} color="#6c757d" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Summary Card */}
         <View style={styles.summaryCard}>
@@ -264,7 +314,7 @@ export default function ExpenseTracker() {
           </View>
           
           <FlatList
-            data={transactions}
+            data={filteredTransactions}
             renderItem={renderTransactionItem}
             keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
             showsVerticalScrollIndicator={false}
@@ -622,5 +672,31 @@ const styles = StyleSheet.create({
     color: '#dc3545',
     fontSize: 12,
     fontWeight: '600',
+  },
+  searchContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#212529',
+  },
+  clearButton: {
+    marginLeft: 8,
   },
 });

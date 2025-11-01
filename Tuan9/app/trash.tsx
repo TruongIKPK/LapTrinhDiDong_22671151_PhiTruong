@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,13 +16,17 @@ import { getDeletedTransactions, restoreTransaction, deleteTransaction, Transact
 export default function TrashScreen() {
   const router = useRouter();
   const [items, setItems] = useState<Transaction[]>([]);
+  const [filteredItems, setFilteredItems] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const loadDeleted = async () => {
     setIsLoading(true);
     try {
       const deleted = await getDeletedTransactions();
       setItems(deleted);
+      setFilteredItems(deleted);
     } catch (error) {
       console.error('Error loading deleted items:', error);
       Alert.alert('Lỗi', 'Không thể tải thùng rác');
@@ -73,6 +78,29 @@ export default function TrashScreen() {
     );
   };
 
+  // Xử lý tìm kiếm
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredItems(items);
+    } else {
+      const filtered = items.filter(item =>
+        item.title.toLowerCase().includes(query.toLowerCase()) ||
+        item.category.toLowerCase().includes(query.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(query.toLowerCase()))
+      );
+      setFilteredItems(filtered);
+    }
+  };
+
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible);
+    if (isSearchVisible) {
+      setSearchQuery('');
+      setFilteredItems(items);
+    }
+  };
+
   const renderItem = ({ item }: { item: Transaction }) => (
     <View style={styles.item}>
       <View style={styles.itemInfo}>
@@ -99,17 +127,43 @@ export default function TrashScreen() {
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Thùng Rác</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={toggleSearch} style={styles.searchButton}>
+          <Ionicons name={isSearchVisible ? "close" : "search"} size={24} color="#333" />
+        </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      {isSearchVisible && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Ionicons name="search" size={20} color="#6c757d" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Tìm kiếm trong thùng rác..."
+              placeholderTextColor="#6c757d"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoFocus={true}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => handleSearch('')} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={20} color="#6c757d" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
       <FlatList
-        data={items}
+        data={filteredItems}
         keyExtractor={(i) => i.id?.toString() || Math.random().toString()}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
         ListEmptyComponent={() => (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Không có giao dịch trong thùng rác</Text>
+            <Text style={styles.emptyText}>
+              {searchQuery ? 'Không tìm thấy giao dịch nào' : 'Không có giao dịch trong thùng rác'}
+            </Text>
           </View>
         )}
       />
@@ -140,5 +194,32 @@ const styles = StyleSheet.create({
   permDeleteButton: { backgroundColor: '#dc3545', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
   actionText: { color: '#fff', fontSize: 12, marginLeft: 4 },
   empty: { padding: 40, alignItems: 'center' },
-  emptyText: { color: '#6c757d' }
+  emptyText: { color: '#6c757d' },
+  searchButton: { padding: 4 },
+  searchContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#212529',
+  },
+  clearButton: {
+    marginLeft: 8,
+  },
 });
