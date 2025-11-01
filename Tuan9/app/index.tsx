@@ -21,6 +21,7 @@ export default function ExpenseTracker() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'income' | 'expense'>('all');
 
   // Khởi tạo database và load dữ liệu
   useEffect(() => {
@@ -68,7 +69,8 @@ export default function ExpenseTracker() {
       const dbTransactions = await getAllTransactions();
       console.log('Loaded transactions:', dbTransactions.length);
       setTransactions(dbTransactions);
-      setFilteredTransactions(dbTransactions);
+      // Apply current filters to newly loaded data
+      applyFiltersToData(dbTransactions);
     } catch (error) {
       console.error('Error loading transactions:', error);
       // Set empty array on error to prevent crashes
@@ -132,30 +134,65 @@ export default function ExpenseTracker() {
     loadTransactions(true);
   }, []);
 
-  // Xử lý tìm kiếm
+  // Xử lý tìm kiếm và lọc
+  const applyFilters = (searchTerm: string = searchQuery, filterType: 'all' | 'income' | 'expense' = selectedFilter) => {
+    let filtered = transactions;
+
+    // Lọc theo loại giao dịch
+    if (filterType !== 'all') {
+      filtered = filtered.filter(t => t.type === filterType);
+    }
+
+    // Lọc theo từ khóa tìm kiếm
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(item =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    setFilteredTransactions(filtered);
+  };
+
+  // Helper function để apply filters với data cụ thể
+  const applyFiltersToData = (data: Transaction[]) => {
+    let filtered = data;
+
+    // Lọc theo loại giao dịch
+    if (selectedFilter !== 'all') {
+      filtered = filtered.filter(t => t.type === selectedFilter);
+    }
+
+    // Lọc theo từ khóa tìm kiếm
+    if (searchQuery.trim() !== '') {
+      filtered = filtered.filter(item =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    setFilteredTransactions(filtered);
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredTransactions(transactions);
-    } else {
-      const filtered = transactions.filter(transaction =>
-        transaction.title.toLowerCase().includes(query.toLowerCase()) ||
-        transaction.category.toLowerCase().includes(query.toLowerCase()) ||
-        (transaction.description && transaction.description.toLowerCase().includes(query.toLowerCase()))
-      );
-      setFilteredTransactions(filtered);
-    }
+    applyFilters(query, selectedFilter);
+  };
+
+  const handleFilterChange = (filter: 'all' | 'income' | 'expense') => {
+    setSelectedFilter(filter);
+    applyFilters(searchQuery, filter);
   };
 
   const toggleSearch = () => {
     setIsSearchVisible(!isSearchVisible);
     if (isSearchVisible) {
       setSearchQuery('');
-      setFilteredTransactions(transactions);
+      applyFilters('', selectedFilter);
     }
-  };
-
-  // Xử lý đồng bộ dữ liệu
+  };  // Xử lý đồng bộ dữ liệu
   const handleSync = async () => {
     // Kiểm tra kết nối API trước
     const isConnected = await testApiConnection();
@@ -344,6 +381,74 @@ export default function ExpenseTracker() {
             </View>
           </View>
         )}
+
+        {/* Filter Bar */}
+        <View style={styles.filterContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedFilter === 'all' && styles.filterButtonActive
+              ]}
+              onPress={() => handleFilterChange('all')}
+            >
+              <Text style={[
+                styles.filterButtonText,
+                selectedFilter === 'all' && styles.filterButtonTextActive
+              ]}>
+                Tất cả
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedFilter === 'income' && styles.filterButtonActive,
+                selectedFilter === 'income' && styles.incomeFilterActive
+              ]}
+              onPress={() => handleFilterChange('income')}
+            >
+              <Ionicons 
+                name="arrow-down" 
+                size={16} 
+                color={selectedFilter === 'income' ? '#fff' : '#28a745'} 
+              />
+              <Text style={[
+                styles.filterButtonText,
+                selectedFilter === 'income' && styles.filterButtonTextActive,
+                selectedFilter !== 'income' && styles.incomeFilterText
+              ]}>
+                Thu
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedFilter === 'expense' && styles.filterButtonActive,
+                selectedFilter === 'expense' && styles.expenseFilterActive
+              ]}
+              onPress={() => handleFilterChange('expense')}
+            >
+              <Ionicons 
+                name="arrow-up" 
+                size={16} 
+                color={selectedFilter === 'expense' ? '#fff' : '#dc3545'} 
+              />
+              <Text style={[
+                styles.filterButtonText,
+                selectedFilter === 'expense' && styles.filterButtonTextActive,
+                selectedFilter !== 'expense' && styles.expenseFilterText
+              ]}>
+                Chi
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
 
         {/* Menu Modal */}
         <Modal
@@ -930,5 +1035,54 @@ const styles = StyleSheet.create({
     color: '#6c757d',
     marginTop: 8,
     textAlign: 'center',
+  },
+  // Filter styles
+  filterContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  filterScrollContent: {
+    paddingHorizontal: 4,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    gap: 6,
+  },
+  filterButtonActive: {
+    backgroundColor: '#007bff',
+    borderColor: '#007bff',
+  },
+  incomeFilterActive: {
+    backgroundColor: '#28a745',
+    borderColor: '#28a745',
+  },
+  expenseFilterActive: {
+    backgroundColor: '#dc3545',
+    borderColor: '#dc3545',
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6c757d',
+  },
+  filterButtonTextActive: {
+    color: '#fff',
+  },
+  incomeFilterText: {
+    color: '#28a745',
+  },
+  expenseFilterText: {
+    color: '#dc3545',
   },
 });
