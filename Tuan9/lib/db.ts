@@ -300,3 +300,129 @@ export const restoreTransaction = async (id: number): Promise<void> => {
     throw error;
   }
 };
+
+// Interface cho dữ liệu thống kê theo tháng
+export interface MonthlyStatistics {
+  month: string;
+  income: number;
+  expense: number;
+  net: number;
+  transactionCount: number;
+}
+
+// Lấy thống kê theo tháng cho một năm cụ thể
+export const getMonthlyStatistics = async (year: number): Promise<MonthlyStatistics[]> => {
+  try {
+    const database = await ensureDbInitialized();
+    
+    // Tạo array cho 12 tháng
+    const monthlyStats: MonthlyStatistics[] = [];
+    
+    for (let month = 1; month <= 12; month++) {
+      const monthStr = month.toString().padStart(2, '0');
+      const startDate = `${year}-${monthStr}-01`;
+      const endDate = `${year}-${monthStr}-31`;
+      
+      // Lấy tổng thu nhập
+      const incomeResult = await database.getFirstAsync(
+        `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+         WHERE type = 'income' AND deleted = 0 
+         AND createdAt >= ? AND createdAt <= ?`,
+        [startDate, endDate]
+      ) as any;
+      
+      // Lấy tổng chi tiêu
+      const expenseResult = await database.getFirstAsync(
+        `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+         WHERE type = 'expense' AND deleted = 0 
+         AND createdAt >= ? AND createdAt <= ?`,
+        [startDate, endDate]
+      ) as any;
+      
+      // Lấy số lượng giao dịch
+      const countResult = await database.getFirstAsync(
+        `SELECT COUNT(*) as count FROM transactions 
+         WHERE deleted = 0 AND createdAt >= ? AND createdAt <= ?`,
+        [startDate, endDate]
+      ) as any;
+      
+      const income = incomeResult?.total || 0;
+      const expense = expenseResult?.total || 0;
+      
+      monthlyStats.push({
+        month: month.toString(),
+        income: income,
+        expense: expense,
+        net: income - expense,
+        transactionCount: countResult?.count || 0
+      });
+    }
+    
+    return monthlyStats;
+  } catch (error) {
+    console.error('Error getting monthly statistics:', error);
+    throw error;
+  }
+};
+
+// Lấy thống kê tổng quan
+export const getOverallStatistics = async (): Promise<{
+  totalIncome: number;
+  totalExpense: number;
+  totalTransactions: number;
+  currentMonthIncome: number;
+  currentMonthExpense: number;
+}> => {
+  try {
+    const database = await ensureDbInitialized();
+    
+    // Lấy tổng thu nhập
+    const totalIncomeResult = await database.getFirstAsync(
+      `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+       WHERE type = 'income' AND deleted = 0`
+    ) as any;
+    
+    // Lấy tổng chi tiêu
+    const totalExpenseResult = await database.getFirstAsync(
+      `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+       WHERE type = 'expense' AND deleted = 0`
+    ) as any;
+    
+    // Lấy tổng số giao dịch
+    const totalTransactionsResult = await database.getFirstAsync(
+      `SELECT COUNT(*) as count FROM transactions WHERE deleted = 0`
+    ) as any;
+    
+    // Lấy thu nhập tháng hiện tại
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const startDate = `${currentYear}-${currentMonth}-01`;
+    const endDate = `${currentYear}-${currentMonth}-31`;
+    
+    const currentMonthIncomeResult = await database.getFirstAsync(
+      `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+       WHERE type = 'income' AND deleted = 0 
+       AND createdAt >= ? AND createdAt <= ?`,
+      [startDate, endDate]
+    ) as any;
+    
+    const currentMonthExpenseResult = await database.getFirstAsync(
+      `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+       WHERE type = 'expense' AND deleted = 0 
+       AND createdAt >= ? AND createdAt <= ?`,
+      [startDate, endDate]
+    ) as any;
+    
+    return {
+      totalIncome: totalIncomeResult?.total || 0,
+      totalExpense: totalExpenseResult?.total || 0,
+      totalTransactions: totalTransactionsResult?.count || 0,
+      currentMonthIncome: currentMonthIncomeResult?.total || 0,
+      currentMonthExpense: currentMonthExpenseResult?.total || 0,
+    };
+  } catch (error) {
+    console.error('Error getting overall statistics:', error);
+    throw error;
+  }
+};

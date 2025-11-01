@@ -467,6 +467,17 @@ export default function ExpenseTracker() {
                 style={styles.menuItem}
                 onPress={() => {
                   setIsMenuVisible(false);
+                  router.push('./statistics');
+                }}
+              >
+                <Ionicons name="bar-chart" size={20} color="#007bff" />
+                <Text style={styles.menuItemText}>Thống kê</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  setIsMenuVisible(false);
                   handleSync();
                 }}
               >
