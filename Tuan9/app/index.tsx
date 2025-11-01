@@ -1,68 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useFocusEffect } from 'expo-router';
+import { initDatabase, getAllTransactions, Transaction as DBTransaction } from '../lib/db';
 
-// Interface cho Transaction (Thu-Chi)
-interface Transaction {
-  id: number;
-  title: string;
-  amount: number;
-  category: string;
-  description?: string;
-  createdAt: string;
-  type: 'income' | 'expense'; // Thu hoặc Chi
-}
+// Interface cho Transaction (Thu-Chi) - sử dụng từ db.ts
+interface Transaction extends DBTransaction {}
 
 export default function ExpenseTracker() {
-  // State để lưu danh sách giao dịch Thu-Chi (demo data)
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: 1,
-      title: "Lương tháng 11",
-      amount: 15000000,
-      category: "Lương",
-      description: "Lương cơ bản + thưởng",
-      createdAt: "2024-11-01",
-      type: "income"
-    },
-    {
-      id: 2,
-      title: "Mua sắm thực phẩm",
-      amount: 250000,
-      category: "Thực phẩm",
-      description: "Mua rau củ và thịt cá",
-      createdAt: "2024-11-01",
-      type: "expense"
-    },
-    {
-      id: 3,
-      title: "Bán đồ cũ",
-      amount: 500000,
-      category: "Bán hàng",
-      description: "Bán laptop cũ",
-      createdAt: "2024-10-31",
-      type: "income"
-    },
-    {
-      id: 4,
-      title: "Xăng xe",
-      amount: 180000,
-      category: "Giao thông",
-      description: "Đổ xăng xe máy",
-      createdAt: "2024-11-01",
-      type: "expense"
-    },
-    {
-      id: 5,
-      title: "Cafe với bạn",
-      amount: 120000,
-      category: "Giải trí",
-      description: "Uống cafe tại Highland",
-      createdAt: "2024-10-31",
-      type: "expense"
+  const router = useRouter();
+  
+  // State để lưu danh sách giao dịch Thu-Chi từ database
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Khởi tạo database và load dữ liệu
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  // Load lại dữ liệu khi focus vào screen
+  useFocusEffect(
+    useCallback(() => {
+      loadTransactions();
+    }, [])
+  );
+
+  const initializeApp = async () => {
+    try {
+      await initDatabase();
+      console.log('Database initialized');
+      await loadTransactions();
+    } catch (error) {
+      console.error('Error initializing app:', error);
     }
-  ]);
+  };
+
+  const loadTransactions = async () => {
+    setIsLoading(true);
+    try {
+      const dbTransactions = await getAllTransactions();
+      setTransactions(dbTransactions);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Tính tổng thu và chi
   const totalIncome = transactions
@@ -82,7 +67,10 @@ export default function ExpenseTracker() {
 
   // Render item giao dịch Thu-Chi
   const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <TouchableOpacity style={styles.transactionItem}>
+    <TouchableOpacity 
+      style={styles.transactionItem}
+      onPress={() => router.push('./add-transaction')}
+    >
       <View style={styles.transactionInfo}>
         <View style={styles.transactionHeader}>
           <View style={styles.titleSection}>
@@ -164,7 +152,10 @@ export default function ExpenseTracker() {
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => router.push('./add-transaction')}
+          >
             <Ionicons name="add-circle" size={24} color="#fff" />
             <Text style={styles.actionText}>Thêm chi tiêu</Text>
           </TouchableOpacity>
@@ -186,14 +177,17 @@ export default function ExpenseTracker() {
           <FlatList
             data={transactions}
             renderItem={renderTransactionItem}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
             showsVerticalScrollIndicator={false}
             style={styles.transactionList}
           />
         </View>
 
         {/* Floating Add Button */}
-        <TouchableOpacity style={styles.floatingButton}>
+        <TouchableOpacity 
+          style={styles.floatingButton}
+          onPress={() => router.push('./add-transaction')}
+        >
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
