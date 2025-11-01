@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert, TextInput } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert, TextInput, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -15,6 +15,7 @@ export default function ExpenseTracker() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
@@ -52,8 +53,13 @@ export default function ExpenseTracker() {
     }
   };
 
-  const loadTransactions = async () => {
-    setIsLoading(true);
+  const loadTransactions = async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+    
     try {
       console.log('Loading transactions...');
       const dbTransactions = await getAllTransactions();
@@ -65,22 +71,28 @@ export default function ExpenseTracker() {
       // Set empty array on error to prevent crashes
       setTransactions([]);
       setFilteredTransactions([]);
-      Alert.alert(
-        'Lỗi tải dữ liệu',
-        'Không thể tải danh sách giao dịch. Vui lòng thử lại.',
-        [
-          {
-            text: 'Thử lại',
-            onPress: () => loadTransactions(),
-          },
-          {
-            text: 'Bỏ qua',
-            style: 'cancel'
-          }
-        ]
-      );
+      if (!isRefresh) {
+        Alert.alert(
+          'Lỗi tải dữ liệu',
+          'Không thể tải danh sách giao dịch. Vui lòng thử lại.',
+          [
+            {
+              text: 'Thử lại',
+              onPress: () => loadTransactions(),
+            },
+            {
+              text: 'Bỏ qua',
+              style: 'cancel'
+            }
+          ]
+        );
+      }
     } finally {
-      setIsLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -111,6 +123,11 @@ export default function ExpenseTracker() {
       ]
     );
   };
+
+  // Xử lý pull to refresh
+  const onRefresh = useCallback(() => {
+    loadTransactions(true);
+  }, []);
 
   // Xử lý tìm kiếm
   const handleSearch = (query: string) => {
@@ -319,6 +336,16 @@ export default function ExpenseTracker() {
             keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
             showsVerticalScrollIndicator={false}
             style={styles.transactionList}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={['#007bff']}
+                tintColor="#007bff"
+                title="Đang tải..."
+                titleColor="#6c757d"
+              />
+            }
           />
         </View>
 

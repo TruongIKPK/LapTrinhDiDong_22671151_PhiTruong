@@ -7,6 +7,7 @@ import {
   FlatList,
   Alert,
   TextInput,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,20 +19,32 @@ export default function TrashScreen() {
   const [items, setItems] = useState<Transaction[]>([]);
   const [filteredItems, setFilteredItems] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  const loadDeleted = async () => {
-    setIsLoading(true);
+  const loadDeleted = async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+    
     try {
       const deleted = await getDeletedTransactions();
       setItems(deleted);
       setFilteredItems(deleted);
     } catch (error) {
       console.error('Error loading deleted items:', error);
-      Alert.alert('Lỗi', 'Không thể tải thùng rác');
+      if (!isRefresh) {
+        Alert.alert('Lỗi', 'Không thể tải thùng rác');
+      }
     } finally {
-      setIsLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -44,6 +57,10 @@ export default function TrashScreen() {
       loadDeleted();
     }, [])
   );
+
+  const onRefresh = () => {
+    loadDeleted(true);
+  };
 
   const handleRestore = async (id?: number) => {
     if (!id) return;
@@ -159,6 +176,15 @@ export default function TrashScreen() {
         keyExtractor={(i) => i.id?.toString() || Math.random().toString()}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor="#007AFF"
+            title="Đang làm mới..."
+            titleColor="#007AFF"
+          />
+        }
         ListEmptyComponent={() => (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>
