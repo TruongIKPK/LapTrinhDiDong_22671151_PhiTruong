@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from 'expo-router';
-import { initDatabase, getAllTransactions, Transaction as DBTransaction } from '../lib/db';
+import { initDatabase, getAllTransactions, deleteTransaction, Transaction as DBTransaction } from '../lib/db';
 
 // Interface cho Transaction (Thu-Chi) - sử dụng từ db.ts
 interface Transaction extends DBTransaction {}
@@ -29,24 +29,82 @@ export default function ExpenseTracker() {
 
   const initializeApp = async () => {
     try {
+      console.log('Initializing app...');
       await initDatabase();
-      console.log('Database initialized');
+      console.log('Database initialized successfully');
       await loadTransactions();
     } catch (error) {
       console.error('Error initializing app:', error);
+      // Show user-friendly error message
+      Alert.alert(
+        'Lỗi khởi tạo',
+        'Không thể khởi tạo cơ sở dữ liệu. Vui lòng khởi động lại ứng dụng.',
+        [
+          {
+            text: 'Thử lại',
+            onPress: () => initializeApp(),
+          }
+        ]
+      );
     }
   };
 
   const loadTransactions = async () => {
     setIsLoading(true);
     try {
+      console.log('Loading transactions...');
       const dbTransactions = await getAllTransactions();
+      console.log('Loaded transactions:', dbTransactions.length);
       setTransactions(dbTransactions);
     } catch (error) {
       console.error('Error loading transactions:', error);
+      // Set empty array on error to prevent crashes
+      setTransactions([]);
+      Alert.alert(
+        'Lỗi tải dữ liệu',
+        'Không thể tải danh sách giao dịch. Vui lòng thử lại.',
+        [
+          {
+            text: 'Thử lại',
+            onPress: () => loadTransactions(),
+          },
+          {
+            text: 'Bỏ qua',
+            style: 'cancel'
+          }
+        ]
+      );
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Xử lý xóa transaction
+  const handleDeleteTransaction = async (id: number) => {
+    Alert.alert(
+      'Xác nhận xóa',
+      'Bạn có chắc chắn muốn xóa giao dịch này?',
+      [
+        {
+          text: 'Hủy',
+          style: 'cancel'
+        },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteTransaction(id);
+              Alert.alert('Thành công', 'Giao dịch đã được xóa thành công!');
+              loadTransactions(); // Reload list
+            } catch (error) {
+              console.error('Error deleting transaction:', error);
+              Alert.alert('Lỗi', 'Có lỗi xảy ra khi xóa giao dịch');
+            }
+          }
+        }
+      ]
+    );
   };
 
   // Tính tổng thu và chi
@@ -67,10 +125,7 @@ export default function ExpenseTracker() {
 
   // Render item giao dịch Thu-Chi
   const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <TouchableOpacity 
-      style={styles.transactionItem}
-      onPress={() => router.push('./add-transaction')}
-    >
+    <View style={styles.transactionItem}>
       <View style={styles.transactionInfo}>
         <View style={styles.transactionHeader}>
           <View style={styles.titleSection}>
@@ -109,8 +164,27 @@ export default function ExpenseTracker() {
         {item.description && (
           <Text style={styles.transactionDescription}>{item.description}</Text>
         )}
+        
+        {/* Action buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => router.push(`./edit-transaction?id=${item.id}`)}
+          >
+            <Ionicons name="create-outline" size={16} color="#007bff" />
+            <Text style={styles.editButtonText}>Sửa</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteTransaction(item.id!)}
+          >
+            <Ionicons name="trash-outline" size={16} color="#dc3545" />
+            <Text style={styles.deleteButtonText}>Xóa</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -492,5 +566,46 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e3f2fd',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 4,
+  },
+  editButtonText: {
+    color: '#007bff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffebee',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 4,
+  },
+  deleteButtonText: {
+    color: '#dc3545',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,12 +17,6 @@ import { addTransaction } from '../lib/db';
 
 export default function AddTransactionScreen() {
   const router = useRouter();
-  
-  // useRef để clear form sau khi save
-  const titleRef = useRef<TextInput>(null);
-  const amountRef = useRef<TextInput>(null);
-  const categoryRef = useRef<TextInput>(null);
-  const descriptionRef = useRef<TextInput>(null);
   
   // State cho form
   const [title, setTitle] = useState('');
@@ -58,7 +52,7 @@ export default function AddTransactionScreen() {
     
     try {
       // Tạo transaction object
-      const newTransaction = {
+      const transactionData = {
         title: title.trim(),
         amount: Number(amount),
         category: category.trim(),
@@ -67,14 +61,8 @@ export default function AddTransactionScreen() {
         type: type,
       };
 
-      // Lưu vào database
-      await addTransaction(newTransaction);
-      
-      // Clear form sử dụng useRef
-      titleRef.current?.clear();
-      amountRef.current?.clear();
-      categoryRef.current?.clear();
-      descriptionRef.current?.clear();
+      // Thêm transaction mới
+      await addTransaction(transactionData);
       
       // Reset state
       setTitle('');
@@ -123,7 +111,9 @@ export default function AddTransactionScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Thêm Giao Dịch</Text>
+          <Text style={styles.headerTitle}>
+            Thêm Giao Dịch
+          </Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -182,7 +172,6 @@ export default function AddTransactionScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Tiêu đề *</Text>
               <TextInput
-                ref={titleRef}
                 style={styles.textInput}
                 value={title}
                 onChangeText={setTitle}
@@ -195,7 +184,6 @@ export default function AddTransactionScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Số tiền *</Text>
               <TextInput
-                ref={amountRef}
                 style={styles.textInput}
                 value={amount}
                 onChangeText={setAmount}
@@ -209,7 +197,6 @@ export default function AddTransactionScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Danh mục *</Text>
               <TextInput
-                ref={categoryRef}
                 style={styles.textInput}
                 value={category}
                 onChangeText={setCategory}
@@ -243,7 +230,6 @@ export default function AddTransactionScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Mô tả</Text>
               <TextInput
-                ref={descriptionRef}
                 style={[styles.textInput, styles.textArea]}
                 value={description}
                 onChangeText={setDescription}
@@ -268,11 +254,15 @@ export default function AddTransactionScreen() {
             disabled={isLoading}
           >
             {isLoading ? (
-              <Text style={styles.saveButtonText}>Đang lưu...</Text>
+              <Text style={styles.saveButtonText}>
+                Đang lưu...
+              </Text>
             ) : (
               <>
                 <Ionicons name="save" size={20} color="#fff" />
-                <Text style={styles.saveButtonText}>Lưu Giao Dịch</Text>
+                <Text style={styles.saveButtonText}>
+                  Lưu Giao Dịch
+                </Text>
               </>
             )}
           </TouchableOpacity>

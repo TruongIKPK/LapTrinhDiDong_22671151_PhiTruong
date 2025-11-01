@@ -13,6 +13,7 @@ export interface Transaction {
 
 // Khởi tạo database
 let db: SQLite.SQLiteDatabase | null = null;
+let isInitializing = false;
 
 // Mở kết nối database
 export const initDatabase = async (): Promise<void> => {
@@ -22,7 +23,23 @@ export const initDatabase = async (): Promise<void> => {
       return;
     }
 
+    if (isInitializing) {
+      console.log('Database initialization already in progress');
+      // Wait for initialization to complete
+      while (isInitializing) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return;
+    }
+
+    isInitializing = true;
+    console.log('Starting database initialization...');
+
     db = await SQLite.openDatabaseAsync('expense_tracker.db');
+    
+    if (!db) {
+      throw new Error('Failed to open database');
+    }
     
     // Tạo bảng transactions nếu chưa tồn tại
     await db.execAsync(`
@@ -40,19 +57,50 @@ export const initDatabase = async (): Promise<void> => {
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
+    db = null; // Reset on error
     throw error;
+  } finally {
+    isInitializing = false;
   }
 };
 
 // Helper function to ensure database is initialized
 const ensureDbInitialized = async (): Promise<SQLite.SQLiteDatabase> => {
-  if (!db) {
-    await initDatabase();
+  let attempts = 0;
+  const maxAttempts = 3;
+
+  while (attempts < maxAttempts) {
+    try {
+      if (!db) {
+        console.log(`Database not initialized, attempting initialization (attempt ${attempts + 1}/${maxAttempts})`);
+        await initDatabase();
+      }
+      
+      if (!db) {
+        throw new Error('Database initialization failed - db is still null');
+      }
+
+      // Test the database connection
+      await db.getFirstAsync('SELECT 1');
+      
+      return db;
+    } catch (error) {
+      attempts++;
+      console.error(`Database initialization attempt ${attempts} failed:`, error);
+      
+      // Reset the database on error
+      db = null;
+      
+      if (attempts >= maxAttempts) {
+        throw new Error(`Database initialization failed after ${maxAttempts} attempts: ${error}`);
+      }
+      
+      // Wait a bit before retrying
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   }
-  if (!db) {
-    throw new Error('Database initialization failed');
-  }
-  return db;
+  
+  throw new Error('Should not reach here');
 };
 
 // Thêm transaction mới
