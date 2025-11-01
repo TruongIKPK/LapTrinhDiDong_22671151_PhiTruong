@@ -8,6 +8,8 @@ import {
   Alert,
   TextInput,
   RefreshControl,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -118,8 +120,54 @@ export default function TrashScreen() {
     }
   };
 
+  // Xử lý long press để hiển thị menu khôi phục
+  const handleLongPress = (item: Transaction) => {
+    if (Platform.OS === 'ios') {
+      // Sử dụng ActionSheetIOS cho iOS
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Khôi phục', 'Xóa vĩnh viễn', 'Hủy'],
+          cancelButtonIndex: 2,
+          destructiveButtonIndex: 1,
+          title: `${item.title}`,
+          message: `Chọn hành động cho giao dịch này`,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) {
+            handleRestore(item.id);
+          } else if (buttonIndex === 1) {
+            handlePermanentDelete(item.id);
+          }
+        }
+      );
+    } else {
+      // Sử dụng Alert cho Android
+      Alert.alert(
+        item.title,
+        'Chọn hành động cho giao dịch này',
+        [
+          { text: 'Hủy', style: 'cancel' },
+          { 
+            text: 'Khôi phục', 
+            onPress: () => handleRestore(item.id),
+            style: 'default'
+          },
+          { 
+            text: 'Xóa vĩnh viễn', 
+            onPress: () => handlePermanentDelete(item.id),
+            style: 'destructive'
+          },
+        ]
+      );
+    }
+  };
+
   const renderItem = ({ item }: { item: Transaction }) => (
-    <View style={styles.item}>
+    <TouchableOpacity 
+      style={styles.item}
+      onLongPress={() => handleLongPress(item)}
+      activeOpacity={0.7}
+    >
       <View style={styles.itemInfo}>
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemMeta}>{item.category} • {item.createdAt}</Text>
@@ -134,7 +182,7 @@ export default function TrashScreen() {
           <Text style={styles.actionText}>Xóa</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
