@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, FlatList, ScrollView, Alert }
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from 'expo-router';
-import { initDatabase, getAllTransactions, deleteTransaction, Transaction as DBTransaction } from '../lib/db';
+import { initDatabase, getAllTransactions, softDeleteTransaction, Transaction as DBTransaction } from '../lib/db';
 
 // Interface cho Transaction (Thu-Chi) - sử dụng từ db.ts
 interface Transaction extends DBTransaction {}
@@ -79,11 +79,11 @@ export default function ExpenseTracker() {
     }
   };
 
-  // Xử lý xóa transaction
+  // Xử lý xóa (soft-delete) transaction
   const handleDeleteTransaction = async (id: number) => {
     Alert.alert(
       'Xác nhận xóa',
-      'Bạn có chắc chắn muốn xóa giao dịch này?',
+      'Bạn có chắc chắn muốn chuyển giao dịch này vào thùng rác?',
       [
         {
           text: 'Hủy',
@@ -94,11 +94,11 @@ export default function ExpenseTracker() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteTransaction(id);
-              Alert.alert('Thành công', 'Giao dịch đã được xóa thành công!');
+              await softDeleteTransaction(id);
+              Alert.alert('Thành công', 'Giao dịch đã được chuyển vào thùng rác');
               loadTransactions(); // Reload list
             } catch (error) {
-              console.error('Error deleting transaction:', error);
+              console.error('Error soft-deleting transaction:', error);
               Alert.alert('Lỗi', 'Có lỗi xảy ra khi xóa giao dịch');
             }
           }
@@ -125,7 +125,22 @@ export default function ExpenseTracker() {
 
   // Render item giao dịch Thu-Chi
   const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <View style={styles.transactionItem}>
+    <TouchableOpacity
+      style={styles.transactionItem}
+      activeOpacity={0.9}
+      onLongPress={() => {
+        // show delete menu
+        Alert.alert(
+          'Tùy chọn',
+          undefined,
+          [
+            { text: 'Hủy', style: 'cancel' },
+            { text: 'Xem thùng rác', onPress: () => router.push('./trash') },
+            { text: 'Xóa', style: 'destructive', onPress: () => handleDeleteTransaction(item.id!) }
+          ]
+        );
+      }}
+    >
       <View style={styles.transactionInfo}>
         <View style={styles.transactionHeader}>
           <View style={styles.titleSection}>
@@ -184,7 +199,7 @@ export default function ExpenseTracker() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -233,9 +248,9 @@ export default function ExpenseTracker() {
             <Ionicons name="add-circle" size={24} color="#fff" />
             <Text style={styles.actionText}>Thêm chi tiêu</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionButton, styles.secondaryButton]}>
-            <Ionicons name="pie-chart" size={24} color="#007bff" />
-            <Text style={[styles.actionText, styles.secondaryText]}>Thống kê</Text>
+          <TouchableOpacity style={[styles.actionButton, styles.secondaryButton]} onPress={() => router.push('./trash')}>
+            <Ionicons name="trash" size={24} color="#007bff" />
+            <Text style={[styles.actionText, styles.secondaryText]}>Thùng Rác</Text>
           </TouchableOpacity>
         </View>
 

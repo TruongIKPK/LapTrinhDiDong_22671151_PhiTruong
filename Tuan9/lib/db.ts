@@ -41,18 +41,34 @@ export const initDatabase = async (): Promise<void> => {
       throw new Error('Failed to open database');
     }
     
-    // Tạo bảng transactions nếu chưa tồn tại
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        amount REAL NOT NULL,
-        category TEXT NOT NULL,
-        description TEXT,
-        createdAt TEXT NOT NULL,
-        type TEXT NOT NULL CHECK (type IN ('income', 'expense'))
-      );
-    `);
+    // Kiểm tra schema hiện tại để hỗ trợ migration nếu cần
+    const tableInfo = await db.getAllAsync(`PRAGMA table_info(transactions)`);
+
+    if (!tableInfo || tableInfo.length === 0) {
+      // Table chưa tồn tại, tạo lại với đầy đủ trường
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS transactions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          amount REAL NOT NULL,
+          category TEXT NOT NULL,
+          description TEXT,
+          createdAt TEXT NOT NULL,
+          type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+          deleted INTEGER DEFAULT 0,
+          deletedAt TEXT
+        );
+      `);
+    } else {
+      // Nếu bảng đã tồn tại, đảm bảo các cột soft-delete có mặt (migration)
+      const columnNames = tableInfo.map((c: any) => c.name);
+      if (!columnNames.includes('deleted')) {
+        await db.execAsync(`ALTER TABLE transactions ADD COLUMN deleted INTEGER DEFAULT 0`);
+      }
+      if (!columnNames.includes('deletedAt')) {
+        await db.execAsync(`ALTER TABLE transactions ADD COLUMN deletedAt TEXT`);
+      }
+    }
     
     console.log('Database initialized successfully');
   } catch (error) {
@@ -108,8 +124,8 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id'>): Prom
   try {
     const database = await ensureDbInitialized();
     const result = await database.runAsync(
-      `INSERT INTO transactions (title, amount, category, description, createdAt, type) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO transactions (title, amount, category, description, createdAt, type, deleted) 
+       VALUES (?, ?, ?, ?, ?, ?, 0)`,
       [
         transaction.title,
         transaction.amount,
@@ -132,8 +148,9 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id'>): Prom
 export const getAllTransactions = async (): Promise<Transaction[]> => {
   try {
     const database = await ensureDbInitialized();
+    // Only return not-deleted items
     const result = await database.getAllAsync(
-      `SELECT * FROM transactions ORDER BY createdAt DESC`
+      `SELECT * FROM transactions WHERE deleted = 0 ORDER BY createdAt DESC`
     );
     
     return result as Transaction[];
@@ -148,7 +165,7 @@ export const getTransactionsByType = async (type: 'income' | 'expense'): Promise
   try {
     const database = await ensureDbInitialized();
     const result = await database.getAllAsync(
-      `SELECT * FROM transactions WHERE type = ? ORDER BY createdAt DESC`,
+      `SELECT * FROM transactions WHERE type = ? AND deleted = 0 ORDER BY createdAt DESC`,
       [type]
     );
     
@@ -235,6 +252,51 @@ export const clearAllTransactions = async (): Promise<void> => {
     console.log('All transactions cleared');
   } catch (error) {
     console.error('Error clearing transactions:', error);
+    throw error;
+  }
+};
+
+// Lấy các transactions đã bị xóa (thùng rác)
+export const getDeletedTransactions = async (): Promise<Transaction[]> => {
+  try {
+    const database = await ensureDbInitialized();
+    const result = await database.getAllAsync(
+      `SELECT * FROM transactions WHERE deleted = 1 ORDER BY deletedAt DESC`
+    );
+    return result as Transaction[];
+  } catch (error) {
+    console.error('Error getting deleted transactions:', error);
+    throw error;
+  }
+};
+
+// Soft-delete transaction: đánh dấu deleted = 1 và lưu deletedAt
+export const softDeleteTransaction = async (id: number): Promise<void> => {
+  try {
+    const database = await ensureDbInitialized();
+    const deletedAt = new Date().toISOString();
+    await database.runAsync(
+      `UPDATE transactions SET deleted = 1, deletedAt = ? WHERE id = ?`,
+      [deletedAt, id]
+    );
+    console.log('Transaction soft-deleted:', id);
+  } catch (error) {
+    console.error('Error soft-deleting transaction:', error);
+    throw error;
+  }
+};
+
+// Restore transaction from trash
+export const restoreTransaction = async (id: number): Promise<void> => {
+  try {
+    const database = await ensureDbInitialized();
+    await database.runAsync(
+      `UPDATE transactions SET deleted = 0, deletedAt = NULL WHERE id = ?`,
+      [id]
+    );
+    console.log('Transaction restored:', id);
+  } catch (error) {
+    console.error('Error restoring transaction:', error);
     throw error;
   }
 };
