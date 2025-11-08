@@ -29,6 +29,7 @@ export default function Index() {
   const [modalVisible, setModalVisible] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [syncing, setSyncing] = useState(false);
 
   // Hàm lấy danh sách todos từ SQLite
   const fetchTodos = async () => {
@@ -74,6 +75,77 @@ export default function Index() {
   const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
   }, []);
+
+  // Hàm đồng bộ dữ liệu từ API
+  const handleSyncAPI = async () => {
+    try {
+      setSyncing(true);
+      
+      // Fetch data từ JSONPlaceholder API
+      const response = await fetch('https://jsonplaceholder.typicode.com/todos');
+      
+      if (!response.ok) {
+        throw new Error('Không thể kết nối đến API');
+      }
+
+      const apiTodos = await response.json();
+      
+      // Lấy danh sách todos hiện tại từ database
+      const db = getDatabase();
+      const existingTodos = await db.getAllAsync<Todo>('SELECT title FROM todos');
+      
+      // Tạo Set các title đã tồn tại để check nhanh
+      const existingTitles = new Set(existingTodos.map(t => t.title.toLowerCase().trim()));
+      
+      // Lọc và merge dữ liệu
+      let importedCount = 0;
+      const now = Date.now();
+      
+      // Chỉ lấy 20 todos đầu tiên để demo
+      const todosToImport = apiTodos.slice(0, 20);
+      
+      for (const apiTodo of todosToImport) {
+        const title = apiTodo.title.trim();
+        const titleLower = title.toLowerCase();
+        
+        // Bỏ qua nếu title đã tồn tại
+        if (existingTitles.has(titleLower)) {
+          continue;
+        }
+        
+        // Map completed (boolean) sang done (0/1)
+        const done = apiTodo.completed ? 1 : 0;
+        
+        // Insert vào SQLite
+        await db.runAsync(
+          'INSERT INTO todos (title, done, created_at) VALUES (?, ?, ?)',
+          [title, done, now]
+        );
+        
+        importedCount++;
+      }
+      
+      // Refresh danh sách
+      await fetchTodos();
+      
+      // Thông báo thành công
+      Alert.alert(
+        "Đồng bộ thành công!",
+        `Đã nhập ${importedCount} công việc mới từ API.`,
+        [{ text: "OK" }]
+      );
+      
+    } catch (error) {
+      console.error('Lỗi khi đồng bộ API:', error);
+      Alert.alert(
+        "Lỗi đồng bộ",
+        "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại!",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   // Hàm thêm todo mới
   const handleAddTodo = async () => {
@@ -186,10 +258,23 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Danh sách công việc</Text>
-        <Text style={styles.headerSubtitle}>
-          {todos.length > 0 ? `${todos.length} việc` : 'Không có việc nào'}
-        </Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>Danh sách công việc</Text>
+            <Text style={styles.headerSubtitle}>
+              {todos.length > 0 ? `${todos.length} việc` : 'Không có việc nào'}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.syncButton, syncing && styles.syncButtonDisabled]}
+            onPress={handleSyncAPI}
+            disabled={syncing}
+          >
+            <Text style={styles.syncButtonText}>
+              {syncing ? '⏳' : '🔄'} {syncing ? 'Đang đồng bộ...' : 'API'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search Box */}
@@ -295,6 +380,11 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -304,6 +394,22 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#E0E0E0',
+  },
+  syncButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  syncButtonDisabled: {
+    opacity: 0.6,
+  },
+  syncButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   searchContainer: {
     flexDirection: 'row',
