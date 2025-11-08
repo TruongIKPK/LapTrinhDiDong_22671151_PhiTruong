@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Text, 
   View, 
@@ -7,195 +7,70 @@ import {
   ActivityIndicator, 
   TouchableOpacity, 
   Modal, 
-  TextInput, 
-  Alert,
+  TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  RefreshControl
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import getDatabase, { initDatabase } from "./lib/db";
-
-// Interface cho Todo
-interface Todo {
-  id: number;
-  title: string;
-  done: number;
-  created_at: number;
-}
+import { useTodos, Todo } from "./hooks/useTodos";
 
 export default function Index() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Sử dụng custom hook
+  const {
+    loading,
+    refreshing,
+    syncing,
+    searchQuery,
+    filteredTodos,
+    loadTodos,
+    refreshTodos,
+    addTodo,
+    syncFromAPI,
+    handleSearch,
+  } = useTodos();
+
+  // State cho modal thêm mới
   const [modalVisible, setModalVisible] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [syncing, setSyncing] = useState(false);
-
-  // Hàm lấy danh sách todos từ SQLite
-  const fetchTodos = async () => {
-    try {
-      setLoading(true);
-      // Đảm bảo database đã được khởi tạo trước khi lấy dữ liệu
-      await initDatabase();
-      const db = getDatabase();
-      const result = await db.getAllAsync<Todo>('SELECT * FROM todos ORDER BY created_at DESC');
-      setTodos(result);
-    } catch (error) {
-      console.error('Lỗi khi lấy danh sách todos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Load dữ liệu khi component mount
   useEffect(() => {
-    fetchTodos();
-  }, []);
+    loadTodos();
+  }, [loadTodos]);
 
   // Refresh data khi màn hình được focus (quay lại từ màn hình edit)
   useFocusEffect(
     useCallback(() => {
-      fetchTodos();
-    }, [])
+      loadTodos(false); // Không hiển thị loading khi quay lại
+    }, [loadTodos])
   );
 
-  // Lọc todos theo search query (client-side với useMemo)
-  const filteredTodos = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return todos;
-    }
+  // State cho modal thêm mới
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTodoTitle, setNewTodoTitle] = useState("");
+  
+  // State để track loading khi thêm
+  const [addingTodo, setAddingTodo] = useState(false);
+
+  // Wrapper function để handle add với loading state
+  const handleAddTodoWithLoading = useCallback(async () => {
+    if (addingTodo) return; // Prevent double-click
     
-    const query = searchQuery.toLowerCase();
-    return todos.filter(todo => 
-      todo.title.toLowerCase().includes(query)
-    );
-  }, [todos, searchQuery]);
-
-  // Hàm xử lý thay đổi search với useCallback
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchQuery(text);
-  }, []);
-
-  // Hàm đồng bộ dữ liệu từ API
-  const handleSyncAPI = async () => {
-    try {
-      setSyncing(true);
-      
-      // Fetch data từ JSONPlaceholder API
-      const response = await fetch('https://jsonplaceholder.typicode.com/todos');
-      
-      if (!response.ok) {
-        throw new Error('Không thể kết nối đến API');
-      }
-
-      const apiTodos = await response.json();
-      
-      // Lấy danh sách todos hiện tại từ database
-      const db = getDatabase();
-      const existingTodos = await db.getAllAsync<Todo>('SELECT title FROM todos');
-      
-      // Tạo Set các title đã tồn tại để check nhanh
-      const existingTitles = new Set(existingTodos.map(t => t.title.toLowerCase().trim()));
-      
-      // Lọc và merge dữ liệu
-      let importedCount = 0;
-      const now = Date.now();
-      
-      // Chỉ lấy 20 todos đầu tiên để demo
-      const todosToImport = apiTodos.slice(0, 20);
-      
-      for (const apiTodo of todosToImport) {
-        const title = apiTodo.title.trim();
-        const titleLower = title.toLowerCase();
-        
-        // Bỏ qua nếu title đã tồn tại
-        if (existingTitles.has(titleLower)) {
-          continue;
-        }
-        
-        // Map completed (boolean) sang done (0/1)
-        const done = apiTodo.completed ? 1 : 0;
-        
-        // Insert vào SQLite
-        await db.runAsync(
-          'INSERT INTO todos (title, done, created_at) VALUES (?, ?, ?)',
-          [title, done, now]
-        );
-        
-        importedCount++;
-      }
-      
-      // Refresh danh sách
-      await fetchTodos();
-      
-      // Thông báo thành công
-      Alert.alert(
-        "Đồng bộ thành công!",
-        `Đã nhập ${importedCount} công việc mới từ API.`,
-        [{ text: "OK" }]
-      );
-      
-    } catch (error) {
-      console.error('Lỗi khi đồng bộ API:', error);
-      Alert.alert(
-        "Lỗi đồng bộ",
-        "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại!",
-        [{ text: "OK" }]
-      );
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  // Hàm thêm todo mới
-  const handleAddTodo = async () => {
-    // Validate: kiểm tra title không rỗng
-    if (!newTodoTitle.trim()) {
-      Alert.alert(
-        "Lỗi", 
-        "Vui lòng nhập tiêu đề công việc!",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
-    try {
-      const db = getDatabase();
-      const now = Date.now();
-      
-      // INSERT todo mới vào SQLite
-      await db.runAsync(
-        'INSERT INTO todos (title, done, created_at) VALUES (?, ?, ?)',
-        [newTodoTitle.trim(), 0, now]
-      );
-
-      // Đóng modal và reset form
+    setAddingTodo(true);
+    const success = await addTodo(newTodoTitle);
+    if (success) {
       setModalVisible(false);
       setNewTodoTitle("");
-
-      // Auto refresh list
-      await fetchTodos();
-
-      Alert.alert(
-        "Thành công", 
-        "Đã thêm công việc mới!",
-        [{ text: "OK" }]
-      );
-    } catch (error) {
-      console.error('Lỗi khi thêm todo:', error);
-      Alert.alert(
-        "Lỗi", 
-        "Không thể thêm công việc. Vui lòng thử lại!",
-        [{ text: "OK" }]
-      );
     }
-  };
+    setAddingTodo(false);
+  }, [addingTodo, newTodoTitle, addTodo]);
 
   // Hàm hủy thêm mới
-  const handleCancelAdd = () => {
+  const handleCancelAdd = useCallback(() => {
     setModalVisible(false);
     setNewTodoTitle("");
-  };
+  }, []);
 
   // Hàm mở màn hình chỉnh sửa
   const handleOpenEdit = (todo: Todo) => {
@@ -235,13 +110,25 @@ export default function Index() {
   // Empty state component
   const renderEmptyState = useCallback(() => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📝</Text>
+      <View style={styles.emptyIconContainer}>
+        <Text style={styles.emptyIcon}>📝</Text>
+      </View>
       <Text style={styles.emptyText}>
         {searchQuery ? 'Không tìm thấy kết quả' : 'Chưa có việc nào'}
       </Text>
       <Text style={styles.emptySubText}>
-        {searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Thêm việc cần làm để bắt đầu'}
+        {searchQuery 
+          ? 'Thử tìm kiếm với từ khóa khác' 
+          : 'Nhấn vào nút + để thêm việc cần làm'}
       </Text>
+      {!searchQuery && (
+        <TouchableOpacity 
+          style={styles.emptyActionButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.emptyActionButtonText}>+ Thêm việc đầu tiên</Text>
+        </TouchableOpacity>
+      )}
     </View>
   ), [searchQuery]);
 
@@ -262,12 +149,12 @@ export default function Index() {
           <View>
             <Text style={styles.headerTitle}>Danh sách công việc</Text>
             <Text style={styles.headerSubtitle}>
-              {todos.length > 0 ? `${todos.length} việc` : 'Không có việc nào'}
+              {filteredTodos.length > 0 ? `${filteredTodos.length} việc` : 'Không có việc nào'}
             </Text>
           </View>
           <TouchableOpacity 
             style={[styles.syncButton, syncing && styles.syncButtonDisabled]}
-            onPress={handleSyncAPI}
+            onPress={syncFromAPI}
             disabled={syncing}
           >
             <Text style={styles.syncButtonText}>
@@ -284,12 +171,12 @@ export default function Index() {
           style={styles.searchInput}
           placeholder="Tìm kiếm công việc..."
           value={searchQuery}
-          onChangeText={handleSearchChange}
+          onChangeText={handleSearch}
           placeholderTextColor="#999"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity 
-            onPress={() => setSearchQuery("")}
+            onPress={() => handleSearch("")}
             style={styles.clearButton}
           >
             <Text style={styles.clearButtonText}>✕</Text>
@@ -312,6 +199,14 @@ export default function Index() {
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={filteredTodos.length === 0 ? styles.emptyList : styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshTodos}
+            colors={["#007AFF"]}
+            tintColor="#007AFF"
+          />
+        }
       />
 
       {/* Nút thêm mới floating */}
@@ -350,15 +245,23 @@ export default function Index() {
                 <TouchableOpacity 
                   style={[styles.modalButton, styles.cancelButton]}
                   onPress={handleCancelAdd}
+                  disabled={addingTodo}
                 >
                   <Text style={styles.cancelButtonText}>Hủy</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={[styles.modalButton, styles.saveButton]}
-                  onPress={handleAddTodo}
+                  style={[
+                    styles.modalButton, 
+                    styles.saveButton,
+                    (addingTodo || !newTodoTitle.trim()) && styles.saveButtonDisabled
+                  ]}
+                  onPress={handleAddTodoWithLoading}
+                  disabled={addingTodo || !newTodoTitle.trim()}
                 >
-                  <Text style={styles.saveButtonText}>Lưu</Text>
+                  <Text style={styles.saveButtonText}>
+                    {addingTodo ? 'Đang lưu...' : 'Lưu'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -514,20 +417,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#F0F8FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: 16,
   },
   emptyText: {
     fontSize: 20,
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubText: {
     fontSize: 14,
     color: '#999',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  emptyActionButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  emptyActionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
@@ -624,6 +555,15 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#007AFF',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+    shadowOpacity: 0,
   },
   saveButtonText: {
     fontSize: 16,
