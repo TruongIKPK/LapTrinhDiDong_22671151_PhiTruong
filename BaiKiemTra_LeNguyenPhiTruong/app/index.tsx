@@ -99,9 +99,45 @@ export default function Index() {
     setNewTodoTitle("");
   };
 
+  // Hàm toggle trạng thái done của todo
+  const handleToggleDone = async (id: number, currentDone: number) => {
+    try {
+      const db = getDatabase();
+      const newDone = currentDone === 1 ? 0 : 1;
+      
+      // UPDATE trạng thái done trong SQLite
+      await db.runAsync(
+        'UPDATE todos SET done = ? WHERE id = ?',
+        [newDone, id]
+      );
+
+      // Cập nhật state local ngay lập tức (optimistic update)
+      setTodos(prevTodos => 
+        prevTodos.map(todo => 
+          todo.id === id ? { ...todo, done: newDone } : todo
+        )
+      );
+
+      console.log(`Đã toggle todo ${id} sang trạng thái: ${newDone === 1 ? 'Hoàn thành' : 'Chưa xong'}`);
+    } catch (error) {
+      console.error('Lỗi khi toggle todo:', error);
+      Alert.alert(
+        "Lỗi", 
+        "Không thể cập nhật trạng thái. Vui lòng thử lại!",
+        [{ text: "OK" }]
+      );
+      // Refresh lại để đảm bảo data đồng bộ
+      await fetchTodos();
+    }
+  };
+
   // Render mỗi item trong danh sách
   const renderTodoItem = ({ item }: { item: Todo }) => (
-    <View style={styles.todoItem}>
+    <TouchableOpacity 
+      style={styles.todoItem}
+      onPress={() => handleToggleDone(item.id, item.done)}
+      activeOpacity={0.7}
+    >
       <View style={styles.todoContent}>
         <Text style={[styles.todoTitle, item.done === 1 && styles.todoTitleDone]}>
           {item.title}
@@ -115,7 +151,7 @@ export default function Index() {
           {item.done === 1 ? '✓ Hoàn thành' : '○ Chưa xong'}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   // Empty state component
