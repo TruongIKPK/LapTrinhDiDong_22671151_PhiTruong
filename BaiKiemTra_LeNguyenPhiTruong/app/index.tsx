@@ -12,6 +12,8 @@ import {
   KeyboardAvoidingView,
   Platform
 } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import getDatabase, { initDatabase } from "./lib/db";
 
 // Interface cho Todo
@@ -48,6 +50,13 @@ export default function Index() {
   useEffect(() => {
     fetchTodos();
   }, []);
+
+  // Refresh data khi màn hình được focus (quay lại từ màn hình edit)
+  useFocusEffect(
+    useCallback(() => {
+      fetchTodos();
+    }, [])
+  );
 
   // Hàm thêm todo mới
   const handleAddTodo = async () => {
@@ -99,43 +108,23 @@ export default function Index() {
     setNewTodoTitle("");
   };
 
-  // Hàm toggle trạng thái done của todo
-  const handleToggleDone = async (id: number, currentDone: number) => {
-    try {
-      const db = getDatabase();
-      const newDone = currentDone === 1 ? 0 : 1;
-      
-      // UPDATE trạng thái done trong SQLite
-      await db.runAsync(
-        'UPDATE todos SET done = ? WHERE id = ?',
-        [newDone, id]
-      );
-
-      // Cập nhật state local ngay lập tức (optimistic update)
-      setTodos(prevTodos => 
-        prevTodos.map(todo => 
-          todo.id === id ? { ...todo, done: newDone } : todo
-        )
-      );
-
-      console.log(`Đã toggle todo ${id} sang trạng thái: ${newDone === 1 ? 'Hoàn thành' : 'Chưa xong'}`);
-    } catch (error) {
-      console.error('Lỗi khi toggle todo:', error);
-      Alert.alert(
-        "Lỗi", 
-        "Không thể cập nhật trạng thái. Vui lòng thử lại!",
-        [{ text: "OK" }]
-      );
-      // Refresh lại để đảm bảo data đồng bộ
-      await fetchTodos();
-    }
+  // Hàm mở màn hình chỉnh sửa
+  const handleOpenEdit = (todo: Todo) => {
+    router.push({
+      pathname: "/edit-todo",
+      params: {
+        id: todo.id,
+        title: todo.title,
+        done: todo.done,
+      },
+    });
   };
 
   // Render mỗi item trong danh sách
   const renderTodoItem = ({ item }: { item: Todo }) => (
     <TouchableOpacity 
       style={styles.todoItem}
-      onPress={() => handleToggleDone(item.id, item.done)}
+      onPress={() => handleOpenEdit(item)}
       activeOpacity={0.7}
     >
       <View style={styles.todoContent}>
