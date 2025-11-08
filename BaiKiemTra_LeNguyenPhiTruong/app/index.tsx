@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Text, 
   View, 
@@ -13,7 +13,6 @@ import {
   Platform
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback } from "react";
 import getDatabase, { initDatabase } from "./lib/db";
 
 // Interface cho Todo
@@ -29,6 +28,7 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Hàm lấy danh sách todos từ SQLite
   const fetchTodos = async () => {
@@ -57,6 +57,23 @@ export default function Index() {
       fetchTodos();
     }, [])
   );
+
+  // Lọc todos theo search query (client-side với useMemo)
+  const filteredTodos = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return todos;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return todos.filter(todo => 
+      todo.title.toLowerCase().includes(query)
+    );
+  }, [todos, searchQuery]);
+
+  // Hàm xử lý thay đổi search với useCallback
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text);
+  }, []);
 
   // Hàm thêm todo mới
   const handleAddTodo = async () => {
@@ -120,8 +137,8 @@ export default function Index() {
     });
   };
 
-  // Render mỗi item trong danh sách
-  const renderTodoItem = ({ item }: { item: Todo }) => (
+  // Render mỗi item trong danh sách - wrap với useCallback
+  const renderTodoItem = useCallback(({ item }: { item: Todo }) => (
     <TouchableOpacity 
       style={styles.todoItem}
       onPress={() => handleOpenEdit(item)}
@@ -141,16 +158,20 @@ export default function Index() {
         </Text>
       </View>
     </TouchableOpacity>
-  );
+  ), []);
 
   // Empty state component
-  const renderEmptyState = () => (
+  const renderEmptyState = useCallback(() => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>📝</Text>
-      <Text style={styles.emptyText}>Chưa có việc nào</Text>
-      <Text style={styles.emptySubText}>Thêm việc cần làm để bắt đầu</Text>
+      <Text style={styles.emptyText}>
+        {searchQuery ? 'Không tìm thấy kết quả' : 'Chưa có việc nào'}
+      </Text>
+      <Text style={styles.emptySubText}>
+        {searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Thêm việc cần làm để bắt đầu'}
+      </Text>
     </View>
-  );
+  ), [searchQuery]);
 
   // Loading state
   if (loading) {
@@ -171,12 +192,41 @@ export default function Index() {
         </Text>
       </View>
 
+      {/* Search Box */}
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Tìm kiếm công việc..."
+          value={searchQuery}
+          onChangeText={handleSearchChange}
+          placeholderTextColor="#999"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity 
+            onPress={() => setSearchQuery("")}
+            style={styles.clearButton}
+          >
+            <Text style={styles.clearButtonText}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Results count */}
+      {searchQuery.length > 0 && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.resultsText}>
+            Tìm thấy {filteredTodos.length} kết quả
+          </Text>
+        </View>
+      )}
+
       <FlatList
-        data={todos}
+        data={filteredTodos}
         renderItem={renderTodoItem}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={todos.length === 0 ? styles.emptyList : styles.list}
+        contentContainerStyle={filteredTodos.length === 0 ? styles.emptyList : styles.list}
       />
 
       {/* Nút thêm mới floating */}
@@ -254,6 +304,50 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#E0E0E0',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    padding: 0,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: '#999',
+    fontWeight: 'bold',
+  },
+  resultsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  resultsText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
   },
   list: {
     padding: 16,
