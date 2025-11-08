@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
-import { Text, View, FlatList, StyleSheet, ActivityIndicator } from "react-native";
-import getDatabase from "./lib/db";
+import { 
+  Text, 
+  View, 
+  FlatList, 
+  StyleSheet, 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  Modal, 
+  TextInput, 
+  Alert,
+  KeyboardAvoidingView,
+  Platform
+} from "react-native";
+import getDatabase, { initDatabase } from "./lib/db";
 
 // Interface cho Todo
 interface Todo {
@@ -13,11 +25,15 @@ interface Todo {
 export default function Index() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTodoTitle, setNewTodoTitle] = useState("");
 
   // Hàm lấy danh sách todos từ SQLite
   const fetchTodos = async () => {
     try {
       setLoading(true);
+      // Đảm bảo database đã được khởi tạo trước khi lấy dữ liệu
+      await initDatabase();
       const db = getDatabase();
       const result = await db.getAllAsync<Todo>('SELECT * FROM todos ORDER BY created_at DESC');
       setTodos(result);
@@ -32,6 +48,56 @@ export default function Index() {
   useEffect(() => {
     fetchTodos();
   }, []);
+
+  // Hàm thêm todo mới
+  const handleAddTodo = async () => {
+    // Validate: kiểm tra title không rỗng
+    if (!newTodoTitle.trim()) {
+      Alert.alert(
+        "Lỗi", 
+        "Vui lòng nhập tiêu đề công việc!",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      const db = getDatabase();
+      const now = Date.now();
+      
+      // INSERT todo mới vào SQLite
+      await db.runAsync(
+        'INSERT INTO todos (title, done, created_at) VALUES (?, ?, ?)',
+        [newTodoTitle.trim(), 0, now]
+      );
+
+      // Đóng modal và reset form
+      setModalVisible(false);
+      setNewTodoTitle("");
+
+      // Auto refresh list
+      await fetchTodos();
+
+      Alert.alert(
+        "Thành công", 
+        "Đã thêm công việc mới!",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error('Lỗi khi thêm todo:', error);
+      Alert.alert(
+        "Lỗi", 
+        "Không thể thêm công việc. Vui lòng thử lại!",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  // Hàm hủy thêm mới
+  const handleCancelAdd = () => {
+    setModalVisible(false);
+    setNewTodoTitle("");
+  };
 
   // Render mỗi item trong danh sách
   const renderTodoItem = ({ item }: { item: Todo }) => (
@@ -87,6 +153,58 @@ export default function Index() {
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={todos.length === 0 ? styles.emptyList : styles.list}
       />
+
+      {/* Nút thêm mới floating */}
+      <TouchableOpacity 
+        style={styles.addButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
+
+      {/* Modal thêm mới */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={handleCancelAdd}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Thêm công việc mới</Text>
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Nhập tiêu đề công việc..."
+                value={newTodoTitle}
+                onChangeText={setNewTodoTitle}
+                autoFocus
+                multiline
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={handleCancelAdd}
+                >
+                  <Text style={styles.cancelButtonText}>Hủy</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleAddTodo}
+                >
+                  <Text style={styles.saveButtonText}>Lưu</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -196,5 +314,95 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#666',
+  },
+  // Floating add button
+  addButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  addButtonText: {
+    fontSize: 32,
+    color: '#FFFFFF',
+    fontWeight: '300',
+    lineHeight: 32,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: '85%',
+    maxWidth: 400,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    minHeight: 50,
+    maxHeight: 120,
+    marginBottom: 20,
+    backgroundColor: '#F9F9F9',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#DDD',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  saveButton: {
+    backgroundColor: '#007AFF',
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
