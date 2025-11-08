@@ -59,6 +59,47 @@ export default function EditTodo() {
     setDone(done === 1 ? 0 : 1);
   };
 
+  // Hàm xóa todo
+  const handleDelete = () => {
+    Alert.alert(
+      "Xác nhận xóa",
+      "Bạn có chắc chắn muốn xóa công việc này?",
+      [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const db = getDatabase();
+
+              // DELETE todo khỏi SQLite
+              await db.runAsync("DELETE FROM todos WHERE id = ?", [todoId]);
+
+              Alert.alert("Thành công", "Đã xóa công việc!", [
+                {
+                  text: "OK",
+                  onPress: () => router.back(),
+                },
+              ]);
+            } catch (error) {
+              console.error("Lỗi khi xóa todo:", error);
+              Alert.alert("Lỗi", "Không thể xóa công việc. Vui lòng thử lại!", [
+                { text: "OK" },
+              ]);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -128,6 +169,15 @@ export default function EditTodo() {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Nút xóa */}
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            disabled={loading}
+          >
+            <Text style={styles.deleteButtonText}>🗑️ Xóa công việc</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -253,5 +303,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  deleteButton: {
+    marginTop: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "#FFEBEE",
+    borderWidth: 2,
+    borderColor: "#F44336",
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#C62828",
   },
 });
